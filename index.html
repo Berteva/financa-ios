@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- index.html (completo e corrigido) -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -21,54 +21,22 @@
         body {
             background: linear-gradient(135deg, #0a0c10 0%, #111318 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
         }
-        <!-- Modal de Ajuda CSV -->
-<div id="csvHelpModal" class="fixed inset-0 z-50 hidden items-end modal-overlay" style="display: none;">
-    <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">📄 Formato do CSV</h3>
-            <button onclick="closeCSVHelp()" class="text-3xl">&times;</button>
-        </div>
         
-        <div class="space-y-4 text-sm">
-            <div class="bg-gray-800/50 rounded-xl p-3">
-                <div class="font-semibold text-[#00e5a0] mb-2">Colunas Obrigatórias:</div>
-                <ul class="space-y-2">
-                    <li class="flex justify-between"><span>📅 <strong>Data</strong></span><span class="text-gray-300">DD/MM ou DD/MM/YYYY</span></li>
-                    <li class="flex justify-between"><span>📝 <strong>Descrição</strong></span><span class="text-gray-300">Texto livre</span></li>
-                    <li class="flex justify-between"><span>💰 <strong>Valor</strong></span><span class="text-gray-300">R$ 1.234,56 ou 1234.56</span></li>
-                    <li class="flex justify-between"><span>🏦 <strong>Instituição</strong></span><span class="text-gray-300">Banco (opcional)</span></li>
-                </ul>
-            </div>
-            
-            <div class="bg-gray-800/50 rounded-xl p-3">
-                <div class="font-semibold text-[#00e5a0] mb-2">🔍 Detecção de Parcelas:</div>
-                <code class="block bg-black/50 p-2 rounded text-xs">
-                    "3/12" → Parcela 3 de 12<br>
-                    "5 de 10" → Parcela 5 de 10
-                </code>
-            </div>
-            
-            <div class="bg-gray-800/50 rounded-xl p-3">
-                <div class="font-semibold text-[#00e5a0] mb-2">📊 Exemplo CSV:</div>
-                <pre class="bg-black/50 p-2 rounded text-xs overflow-x-auto">
-Data,Descrição,Valor,Instituição
-15/01,Supermercado,-350.50,Nubank
-20/01,Ifood,-89.90,Nubank
-25/01,Salário,5000.00,Itaú
-01/02,Notebook 3/12,-250.00,BB</pre>
-            </div>
-            
-            <button onclick="downloadCSVTemplate()" class="gradient-btn w-full py-2 rounded-xl text-sm font-semibold">
-                📥 Baixar Template CSV
-            </button>
-        </div>
-    </div>
-</div>
+        /* Container principal com largura fixa e centralizado */
+        .app-container {
+            max-width: 28rem;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
         
-        /* Custom dark theme */
+        /* Glass morphism */
         .glass-card {
-            background: rgba(17, 19, 24, 0.7);
+            background: rgba(17, 19, 24, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(55, 65, 81, 0.5);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -84,6 +52,25 @@ Data,Descrição,Valor,Instituição
             box-shadow: 0 0 20px rgba(0, 229, 160, 0.5);
         }
         
+        /* Bottom navigation fixa */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 19, 24, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(55, 65, 81, 0.5);
+            z-index: 50;
+        }
+        
+        .bottom-nav-inner {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 8px 16px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+        
         .bottom-nav-btn {
             transition: all 0.2s ease;
             min-height: 44px;
@@ -93,9 +80,39 @@ Data,Descrição,Valor,Instituição
             transform: scale(0.92);
         }
         
+        /* Main content com padding para header e footer fixos */
+        .main-content {
+            flex: 1;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            padding-left: 16px;
+            padding-right: 16px;
+            overflow-y: auto;
+        }
+        
+        /* Header fixo */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 19, 24, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+            z-index: 40;
+        }
+        
+        .fixed-header-inner {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 12px 20px;
+            padding-top: max(12px, env(safe-area-inset-top));
+        }
+        
         .modal-overlay {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(8px);
+            z-index: 100;
         }
         
         .bottom-sheet {
@@ -118,14 +135,6 @@ Data,Descrição,Valor,Instituição
         .tx-item:active {
             background: rgba(0, 229, 160, 0.1);
             transform: scale(0.99);
-        }
-        
-        .category-badge {
-            transition: all 0.15s ease;
-        }
-        
-        .category-badge:active {
-            transform: scale(0.95);
         }
         
         input, select, textarea {
@@ -158,10 +167,6 @@ Data,Descrição,Valor,Instituição
             border-radius: 10px;
         }
         
-        .donut-chart {
-            transform: rotate(-90deg);
-        }
-        
         .balance-positive {
             color: #00e5a0;
             text-shadow: 0 0 10px rgba(0, 229, 160, 0.3);
@@ -171,53 +176,146 @@ Data,Descrição,Valor,Instituição
             color: #ef4444;
         }
         
-        @supports (padding: max(0px)) {
-            .safe-bottom {
-                padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
-            }
-            .safe-top {
-                padding-top: max(env(safe-area-inset-top, 0px), 12px);
+        /* FAB button */
+        .fab-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #14b8a6, #10b981, #00e5a0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 45;
+        }
+        
+        .fab-btn:active {
+            transform: scale(0.92);
+        }
+        
+        @media (max-width: 640px) {
+            .fab-btn {
+                right: 16px;
+                bottom: 85px;
             }
         }
     </style>
 </head>
-<body class="text-white">
-    <div id="app" class="max-w-md mx-auto relative min-h-screen">
+<body>
+    <div class="app-container">
         <!-- Header Fixo -->
-        <header class="fixed top-0 left-0 right-0 z-40 glass-card safe-top" style="max-width: 28rem; margin: 0 auto;">
-            <div class="px-5 py-3">
+        <div class="fixed-header">
+            <div class="fixed-header-inner">
                 <div class="text-xs text-gray-400 mb-1">Saldo Total</div>
                 <div class="text-3xl font-bold" id="balanceAmount">R$ 0,00</div>
             </div>
-        </header>
+        </div>
 
         <!-- Main Content -->
-        <main id="mainContent" class="pt-24 pb-20 px-4">
+        <div class="main-content" id="mainContent">
             <!-- Conteúdo dinâmico via JS -->
-        </main>
+        </div>
 
         <!-- Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 z-40 glass-card safe-bottom" style="max-width: 28rem; margin: 0 auto;">
-            <div class="flex justify-around items-center px-2 py-2">
-                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="home">
-                    <span class="text-2xl">🏠</span>
-                    <span class="text-xs" style="color: #00e5a0;">Início</span>
-                </button>
-                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="transactions">
-                    <span class="text-2xl">📋</span>
-                    <span class="text-xs text-gray-400">Txs</span>
-                </button>
-                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="budget">
-                    <span class="text-2xl">💰</span>
-                    <span class="text-xs text-gray-400">Budget</span>
-                </button>
-                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all relative" data-nav="installments">
-                    <span class="text-2xl">📅</span>
-                    <span class="text-xs text-gray-400">Parcelas</span>
-                    <span id="installmentBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 hidden">0</span>
+        <div class="bottom-nav">
+            <div class="bottom-nav-inner">
+                <div class="flex justify-around items-center">
+                    <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="home">
+                        <span class="text-2xl">🏠</span>
+                        <span class="text-xs" id="navHomeLabel" style="color: #00e5a0;">Início</span>
+                    </button>
+                    <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="transactions">
+                        <span class="text-2xl">📋</span>
+                        <span class="text-xs text-gray-400" id="navTxLabel">Txs</span>
+                    </button>
+                    <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="budget">
+                        <span class="text-2xl">💰</span>
+                        <span class="text-xs text-gray-400" id="navBudgetLabel">Budget</span>
+                    </button>
+                    <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all relative" data-nav="installments">
+                        <span class="text-2xl">📅</span>
+                        <span class="text-xs text-gray-400" id="navInstallmentLabel">Parcelas</span>
+                        <span id="installmentBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuda CSV (escondido inicialmente) -->
+    <div id="csvHelpModal" class="fixed inset-0 z-50 hidden items-end modal-overlay">
+        <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">📄 Formato Correto do CSV</h3>
+                <button onclick="closeCSVHelp()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
+            </div>
+            
+            <div class="space-y-4 text-sm">
+                <div class="bg-gray-800/50 rounded-xl p-3">
+                    <div class="font-semibold text-[#00e5a0] mb-2">📌 Colunas Obrigatórias:</div>
+                    <ul class="space-y-2">
+                        <li class="flex justify-between items-center">
+                            <span>📅 <strong>Data</strong></span>
+                            <span class="text-gray-300 text-xs">DD/MM ou DD/MM/YYYY</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span>📝 <strong>Descrição</strong></span>
+                            <span class="text-gray-300 text-xs">Texto livre</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span>💰 <strong>Valor</strong></span>
+                            <span class="text-gray-300 text-xs">R$ 1.234,56 ou 1234.56</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span>🏦 <strong>Instituição</strong></span>
+                            <span class="text-gray-300 text-xs">Banco (opcional)</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-800/50 rounded-xl p-3">
+                    <div class="font-semibold text-[#00e5a0] mb-2">🔍 Detecção de Parcelas:</div>
+                    <code class="block bg-black/50 p-2 rounded text-xs">
+                        "3/12" → Parcela 3 de 12<br>
+                        "5 de 10" → Parcela 5 de 10
+                    </code>
+                </div>
+                
+                <div class="bg-gray-800/50 rounded-xl p-3">
+                    <div class="font-semibold text-[#00e5a0] mb-2">📊 Exemplo CSV:</div>
+                    <pre class="bg-black/50 p-2 rounded text-xs overflow-x-auto font-mono">
+Data,Descrição,Valor,Instituição
+15/01,Supermercado,-350.50,Nubank
+20/01,Ifood - Almoço,-89.90,Nubank
+25/01,Salário,5000.00,Itaú
+01/02,Notebook 3/12,-250.00,BB</pre>
+                </div>
+                
+                <div class="bg-gray-800/50 rounded-xl p-3">
+                    <div class="font-semibold text-[#00e5a0] mb-2">🏦 Bancos Detectados:</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <span>• XP Investimentos</span>
+                        <span>• Itaú</span>
+                        <span>• Nubank</span>
+                        <span>• Sicoob</span>
+                        <span>• Santander</span>
+                        <span>• Caixa</span>
+                        <span>• BRB</span>
+                        <span>• Banco do Brasil</span>
+                    </div>
+                </div>
+                
+                <button onclick="downloadCSVTemplate()" class="gradient-btn w-full py-3 rounded-xl text-sm font-semibold">
+                    📥 Baixar Template CSV
                 </button>
             </div>
-        </nav>
+        </div>
     </div>
 
     <script>
@@ -261,125 +359,186 @@ Data,Descrição,Valor,Instituição
             }
         }
 
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-24 left-4 right-4 max-w-md mx-auto ${isError ? 'bg-red-900' : 'bg-gray-900'} text-white px-4 py-3 rounded-xl text-center z-50 glass-card`;
+            toast.style.animation = 'slideUp 0.3s ease';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function downloadCSVTemplate() {
+            const template = `Data,Descrição,Valor,Instituição
+15/01,Exemplo Receita,1000.00,Nubank
+20/01,Exemplo Despesa,-250.50,Itaú
+01/02,Exemplo Parcela 1/12,-89.90,BB`;
+            
+            const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', 'template_financas.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('✅ Template baixado!');
+        }
+
+        function showCSVHelp() {
+            const modal = document.getElementById('csvHelpModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeCSVHelp() {
+            const modal = document.getElementById('csvHelpModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        }
+
         function parseCSVAndImport(file) {
+            if (!file || !file.name.endsWith('.csv')) {
+                showToast('❌ Por favor, selecione um arquivo CSV válido', true);
+                return;
+            }
+            
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
+                    let successCount = 0;
+                    let errorCount = 0;
                     const newTransactions = [];
+                    
                     results.data.forEach(row => {
-                        // Auto-detect columns
                         const dateField = row.Data || row.data || row.Date || row['Data'];
-                        const descField = row.Descrição || row.descricao || row.Descricao || row.Description || '';
-                        const valueField = row.Valor || row.valor || row.Valor || row.Amount || '';
+                        const descField = row.Descrição || row.descricao || row.Descricao || row.Description;
+                        const valueField = row.Valor || row.valor || row.Valor || row.Amount;
                         const bankField = row.Instituição || row.instituicao || row.Bank || '';
 
-                        if (dateField && descField && valueField) {
-                            // Parse valor R$ 1.234,56 -> 1234.56
-                            let valorNum = 0;
-                            if (typeof valueField === 'string') {
-                                const cleaned = valueField.replace(/R\$|\./g, '').replace(',', '.');
-                                valorNum = parseFloat(cleaned) || 0;
-                            } else {
-                                valorNum = parseFloat(valueField) || 0;
-                            }
+                        if (!dateField || !descField || !valueField) {
+                            errorCount++;
+                            return;
+                        }
+                        
+                        // Parse valor
+                        let valorNum = 0;
+                        if (typeof valueField === 'string') {
+                            let cleaned = valueField.replace(/R\$|\s/g, '');
+                            cleaned = cleaned.replace(/\./g, '');
+                            cleaned = cleaned.replace(',', '.');
+                            valorNum = parseFloat(cleaned) || 0;
+                        } else {
+                            valorNum = parseFloat(valueField) || 0;
+                        }
 
-                            // Parse data dd/mm ou dd/mm/yyyy
-                            let dateStr = dateField.toString();
-                            let year = new Date().getFullYear();
-                            let day, month;
-                            if (dateStr.includes('/')) {
-                                const parts = dateStr.split('/');
-                                day = parts[0];
-                                month = parts[1];
-                                if (parts[2]) year = parts[2];
-                            } else {
-                                day = dateStr.substring(0, 2);
-                                month = dateStr.substring(2, 4);
-                            }
-                            const formattedDate = `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
+                        // Parse data
+                        let dateStr = dateField.toString();
+                        let year = new Date().getFullYear();
+                        let day, month;
+                        if (dateStr.includes('/')) {
+                            const parts = dateStr.split('/');
+                            day = parts[0].padStart(2, '0');
+                            month = parts[1].padStart(2, '0');
+                            if (parts[2]) year = parts[2];
+                        } else {
+                            day = dateStr.substring(0, 2);
+                            month = dateStr.substring(2, 4);
+                        }
+                        const formattedDate = `${year}-${month}-${day}`;
 
-                            // Detect parcelas
-                            let installmentCurrent = null;
-                            let installmentTotal = null;
-                            const installmentRegex = /(\d+)\/(\d+)/;
-                            const installmentRegex2 = /(\d+)\s+de\s+(\d+)/i;
-                            let match = descField.match(installmentRegex);
-                            if (!match) match = descField.match(installmentRegex2);
-                            if (match) {
-                                installmentCurrent = parseInt(match[1]);
-                                installmentTotal = parseInt(match[2]);
-                            }
+                        // Detect parcelas
+                        let installmentCurrent = null;
+                        let installmentTotal = null;
+                        const installmentRegex = /(\d+)\/(\d+)/;
+                        const installmentRegex2 = /(\d+)\s+de\s+(\d+)/i;
+                        let match = descField.match(installmentRegex);
+                        if (!match) match = descField.match(installmentRegex2);
+                        if (match) {
+                            installmentCurrent = parseInt(match[1]);
+                            installmentTotal = parseInt(match[2]);
+                        }
 
-                            // Auto-categorização por banco e keywords
-                            let categoryId = null;
-                            let subCategoryId = null;
-                            
-                            // Primeiro tenta por banco
-                            const bankLower = bankField.toLowerCase();
-                            for (let [bank, keywords] of Object.entries(bankKeywords)) {
-                                if (keywords.some(kw => bankLower.includes(kw))) {
-                                    // Banco identificado, procurar categoria relacionada
-                                    const expenseCat = appData.categories.find(c => c.name.toLowerCase().includes('banco') || c.name.toLowerCase().includes(bank));
-                                    if (expenseCat) categoryId = expenseCat.id;
+                        // Auto-categorização
+                        let categoryId = null;
+                        let subCategoryId = null;
+                        
+                        const descLower = descField.toLowerCase();
+                        for (let cat of appData.categories) {
+                            for (let sub of cat.subs) {
+                                if (sub.keywords.some(kw => descLower.includes(kw.toLowerCase()))) {
+                                    categoryId = cat.id;
+                                    subCategoryId = sub.id;
                                     break;
                                 }
                             }
-
-                            // Depois por palavras-chave nas subs
-                            if (!categoryId) {
-                                const descLower = descField.toLowerCase();
-                                for (let cat of appData.categories) {
-                                    for (let sub of cat.subs) {
-                                        if (sub.keywords.some(kw => descLower.includes(kw.toLowerCase()))) {
-                                            categoryId = cat.id;
-                                            subCategoryId = sub.id;
-                                            break;
-                                        }
-                                    }
-                                    if (categoryId) break;
-                                }
-                            }
-
-                            newTransactions.push({
-                                id: Date.now() + Math.random(),
-                                date: formattedDate,
-                                description: descField,
-                                amount: valorNum,
-                                type: valorNum >= 0 ? 'income' : 'expense',
-                                categoryId: categoryId,
-                                subCategoryId: subCategoryId,
-                                bank: bankField,
-                                installmentCurrent: installmentCurrent,
-                                installmentTotal: installmentTotal
-                            });
+                            if (categoryId) break;
                         }
+
+                        newTransactions.push({
+                            id: Date.now() + Math.random(),
+                            date: formattedDate,
+                            description: descField,
+                            amount: valorNum,
+                            type: valorNum >= 0 ? 'income' : 'expense',
+                            categoryId: categoryId,
+                            subCategoryId: subCategoryId,
+                            bank: bankField,
+                            installmentCurrent: installmentCurrent,
+                            installmentTotal: installmentTotal
+                        });
+                        successCount++;
                     });
 
                     appData.transactions = [...appData.transactions, ...newTransactions];
                     saveData();
                     renderCurrentView();
                     updateInstallmentBadge();
-                    showToast(`${newTransactions.length} transações importadas com sucesso!`);
+                    showToast(`✅ ${successCount} transações importadas${errorCount > 0 ? `, ${errorCount} ignoradas` : ''}`);
                 },
                 error: (error) => {
                     console.error('Erro no CSV:', error);
-                    showToast('Erro ao processar CSV');
+                    showToast('❌ Erro ao processar CSV', true);
                 }
             });
         }
 
-        function autoCategorizeTransaction(tx) {
-            // Similar à lógica acima mas para transações individuais
-            const descLower = tx.description.toLowerCase();
-            for (let cat of appData.categories) {
-                for (let sub of cat.subs) {
-                    if (sub.keywords.some(kw => descLower.includes(kw.toLowerCase()))) {
-                        return { categoryId: cat.id, subCategoryId: sub.id };
-                    }
+        function triggerCSVImport() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center modal-overlay';
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+            modal.innerHTML = `
+                <div class="glass-card rounded-2xl p-6 w-11/12 max-w-sm" onclick="event.stopPropagation()">
+                    <h3 class="text-lg font-bold mb-4">📤 Importar CSV</h3>
+                    <input type="file" id="csvFileInput" accept=".csv" class="w-full mb-4">
+                    <div class="flex gap-3">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-2 rounded-xl bg-gray-700">Cancelar</button>
+                        <button onclick="importSelectedFile()" class="flex-1 gradient-btn py-2 rounded-xl font-semibold">Importar</button>
+                    </div>
+                    <button onclick="showCSVHelp();this.closest('.modal-overlay').remove()" class="w-full mt-3 text-[#00e5a0] text-sm">
+                        ❓ Ver formato correto do CSV
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            window.importSelectedFile = () => {
+                const input = document.getElementById('csvFileInput');
+                if (input.files && input.files[0]) {
+                    parseCSVAndImport(input.files[0]);
+                    modal.remove();
+                } else {
+                    showToast('❌ Selecione um arquivo CSV', true);
                 }
-            }
-            return { categoryId: null, subCategoryId: null };
+            };
         }
 
         function updateInstallmentBadge() {
@@ -395,29 +554,18 @@ Data,Descrição,Valor,Instituição
             }
         }
 
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-24 left-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-xl text-center z-50 glass-card animate-slide-up';
-            toast.style.animation = 'slideUp 0.3s ease';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
         // Calculate dashboard stats
         function calculateStats() {
             const totalIncome = appData.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
             const totalExpense = appData.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
             const balance = totalIncome - totalExpense;
             
-            // Score financeiro
             let score = 50;
             if (balance > 0) score += 20;
-            if (totalExpense < totalIncome * 0.5) score += 20;
-            if (totalExpense < totalIncome * 0.3) score += 10;
+            if (totalExpense < totalIncome * 0.5 && totalIncome > 0) score += 20;
+            if (totalExpense < totalIncome * 0.3 && totalIncome > 0) score += 10;
             score = Math.min(100, Math.max(0, score));
             
-            // Categorias agrupadas
             const categorySpending = {};
             appData.transactions.filter(t => t.amount < 0).forEach(t => {
                 const cat = appData.categories.find(c => c.id === t.categoryId);
@@ -428,37 +576,13 @@ Data,Descrição,Valor,Instituição
             return { totalIncome, totalExpense, balance, score, categorySpending };
         }
 
-        // Render functions for each view
+        // Render functions
         function renderHome() {
             const stats = calculateStats();
             const recentTxs = [...appData.transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,5);
             
-            const donutData = Object.entries(stats.categorySpending).slice(0,5);
-            const total = donutData.reduce((sum, [,val]) => sum + val, 0);
-            
-            let donutSVG = '';
-            if (donutData.length > 0) {
-                let currentAngle = 0;
-                donutSVG = `<svg viewBox="0 0 100 100" class="w-32 h-32 donut-chart">`;
-                donutData.forEach(([name, value]) => {
-                    const percentage = (value / total) * 100;
-                    const angle = (percentage / 100) * 360;
-                    const startAngle = currentAngle;
-                    const endAngle = currentAngle + angle;
-                    const x1 = 50 + 40 * Math.cos((startAngle - 90) * Math.PI / 180);
-                    const y1 = 50 + 40 * Math.sin((startAngle - 90) * Math.PI / 180);
-                    const x2 = 50 + 40 * Math.cos((endAngle - 90) * Math.PI / 180);
-                    const y2 = 50 + 40 * Math.sin((endAngle - 90) * Math.PI / 180);
-                    const largeArc = angle > 180 ? 1 : 0;
-                    donutSVG += `<path d="M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z" fill="url(#grad${donutData.indexOf(name)})" />`;
-                    currentAngle += angle;
-                });
-                donutSVG += `</svg>`;
-            }
-
             return `
                 <div class="space-y-4">
-                    <!-- Score Card -->
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-sm text-gray-400 mb-2">Score Financeiro</div>
                         <div class="text-3xl font-bold text-[#00e5a0]">${stats.score}</div>
@@ -467,7 +591,6 @@ Data,Descrição,Valor,Instituição
                         </div>
                     </div>
                     
-                    <!-- Income/Expense Cards -->
                     <div class="grid grid-cols-2 gap-3">
                         <div class="glass-card rounded-2xl p-4">
                             <div class="text-sm text-gray-400">Receitas</div>
@@ -479,23 +602,19 @@ Data,Descrição,Valor,Instituição
                         </div>
                     </div>
                     
-                    <!-- Donut Chart -->
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-sm text-gray-400 mb-3">Gastos por Categoria</div>
-                        <div class="flex justify-center mb-3">
-                            ${donutSVG || '<div class="text-gray-500 text-center py-8">Adicione transações para ver o gráfico</div>'}
-                        </div>
-                        <div class="space-y-1 text-xs">
-                            ${donutData.map(([name, val], idx) => `
-                                <div class="flex justify-between">
+                        ${Object.entries(stats.categorySpending).length === 0 ? 
+                            '<div class="text-center text-gray-500 py-8">Adicione transações para ver o gráfico</div>' :
+                            Object.entries(stats.categorySpending).slice(0,5).map(([name, val]) => `
+                                <div class="flex justify-between py-2 border-b border-gray-700">
                                     <span>${name}</span>
                                     <span class="text-[#00e5a0]">R$ ${val.toFixed(2)}</span>
                                 </div>
-                            `).join('')}
-                        </div>
+                            `).join('')
+                        }
                     </div>
                     
-                    <!-- Recent Transactions -->
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-sm text-gray-400 mb-3">Últimas Transações</div>
                         ${recentTxs.length === 0 ? '<div class="text-center text-gray-500 py-4">Nenhuma transação</div>' : 
@@ -517,11 +636,6 @@ Data,Descrição,Valor,Instituição
         }
 
         function renderTransactions() {
-            const searchHtml = `
-                <input type="text" id="searchTx" placeholder="🔍 Buscar transações..." class="w-full mb-4 glass-card">
-                <div id="transactionsList"></div>
-            `;
-            
             setTimeout(() => {
                 const searchInput = document.getElementById('searchTx');
                 if (searchInput) {
@@ -535,7 +649,10 @@ Data,Descrição,Valor,Instituição
                 renderTxList(appData.transactions);
             }, 0);
             
-            return searchHtml;
+            return `
+                <input type="text" id="searchTx" placeholder="🔍 Buscar transações..." class="w-full mb-4">
+                <div id="transactionsList"></div>
+            `;
         }
         
         function renderTxList(transactions) {
@@ -575,7 +692,7 @@ Data,Descrição,Valor,Instituição
                                         <div class="font-semibold" style="color: ${cat.color}">${cat.name}</div>
                                         <div class="text-xs text-gray-400">Limite: R$ ${cat.limit}</div>
                                     </div>
-                                    <button onclick="deleteCategory('${cat.id}')" class="text-red-400 text-sm">Excluir</button>
+                                    <button onclick="deleteCategory('${cat.id}')" class="text-red-400 text-sm px-2 py-1">Excluir</button>
                                 </div>
                                 <div class="text-xs text-gray-400">Subcategorias: ${cat.subs.length}</div>
                                 <button onclick="showAddSubModal('${cat.id}')" class="text-[#00e5a0] text-xs mt-2">+ Adicionar Subcategoria</button>
@@ -590,7 +707,6 @@ Data,Descrição,Valor,Instituição
             const openInstallments = appData.transactions.filter(tx => tx.installmentTotal && tx.installmentCurrent < tx.installmentTotal);
             const totalPending = openInstallments.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
             
-            // Projeção 6 meses
             const projection = {};
             openInstallments.forEach(tx => {
                 const remaining = tx.installmentTotal - tx.installmentCurrent;
@@ -599,7 +715,7 @@ Data,Descrição,Valor,Instituição
                 for (let i = 1; i <= Math.min(remaining, 6); i++) {
                     const futureDate = new Date(date);
                     futureDate.setMonth(date.getMonth() + i);
-                    const monthKey = `${futureDate.getFullYear()}-${futureDate.getMonth()}`;
+                    const monthKey = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}`;
                     projection[monthKey] = (projection[monthKey] || 0) + monthlyAmount;
                 }
             });
@@ -607,14 +723,14 @@ Data,Descrição,Valor,Instituição
             return `
                 <div class="space-y-4">
                     <div class="glass-card rounded-2xl p-4">
-                        <div class="text-2xl font-bold text-[#00e5a0]">${openInstallments.length}</div>
+                        <div class="text-3xl font-bold text-[#00e5a0]">${openInstallments.length}</div>
                         <div class="text-sm text-gray-400">Parcelas em aberto</div>
                         <div class="text-lg font-semibold mt-2">Total pendente: R$ ${totalPending.toFixed(2)}</div>
                     </div>
                     
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-sm text-gray-400 mb-3">Projeção próximos 6 meses</div>
-                        ${Object.entries(projection).length === 0 ? '<div class="text-center text-gray-500">Nenhuma parcela futura</div>' :
+                        ${Object.entries(projection).length === 0 ? '<div class="text-center text-gray-500 py-4">Nenhuma parcela futura</div>' :
                             Object.entries(projection).map(([month, value]) => `
                                 <div class="flex justify-between py-2 border-b border-gray-700">
                                     <span>${month}</span>
@@ -626,15 +742,17 @@ Data,Descrição,Valor,Instituição
                     
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-sm text-gray-400 mb-3">Lista de parcelas abertas</div>
-                        ${openInstallments.map(tx => `
-                            <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
-                                <div>
-                                    <div class="font-medium">${tx.description}</div>
-                                    <div class="text-xs text-gray-400">${tx.date} - Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>
+                        ${openInstallments.length === 0 ? '<div class="text-center text-gray-500 py-4">Nenhuma parcela em aberto</div>' :
+                            openInstallments.map(tx => `
+                                <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
+                                    <div>
+                                        <div class="font-medium">${tx.description}</div>
+                                        <div class="text-xs text-gray-400">${tx.date} - Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>
+                                    </div>
+                                    <div class="text-red-400 font-semibold">R$ ${Math.abs(tx.amount).toFixed(2)}</div>
                                 </div>
-                                <div class="text-red-400">R$ ${Math.abs(tx.amount).toFixed(2)}</div>
-                            </div>
-                        `).join('')}
+                            `).join('')
+                        }
                     </div>
                 </div>
             `;
@@ -644,8 +762,9 @@ Data,Descrição,Valor,Instituição
         window.showAddCategoryModal = () => {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             modal.innerHTML = `
-                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 animate-slide-up">
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6" onclick="event.stopPropagation()">
                     <h3 class="text-xl font-bold mb-4">Nova Categoria</h3>
                     <input type="text" id="catName" placeholder="Nome" class="w-full mb-3">
                     <input type="number" id="catLimit" placeholder="Limite mensal" class="w-full mb-3">
@@ -660,37 +779,41 @@ Data,Descrição,Valor,Instituição
         };
         
         window.addCategory = () => {
-            const name = document.getElementById('catName').value;
-            const limit = parseFloat(document.getElementById('catLimit').value);
-            const color = document.getElementById('catColor').value;
+            const name = document.getElementById('catName')?.value;
+            const limit = parseFloat(document.getElementById('catLimit')?.value) || 0;
+            const color = document.getElementById('catColor')?.value || '#00e5a0';
             if (name) {
                 appData.categories.push({
                     id: `cat${appData.nextCategoryId++}`,
                     name: name,
-                    limit: limit || 0,
+                    limit: limit,
                     color: color,
                     subs: []
                 });
                 saveData();
                 renderCurrentView();
                 document.querySelector('.modal-overlay')?.remove();
-                showToast('Categoria adicionada!');
+                showToast(`✅ Categoria "${name}" adicionada!`);
+            } else {
+                showToast('❌ Digite um nome para a categoria', true);
             }
         };
         
         window.deleteCategory = (id) => {
-            if (confirm('Excluir categoria?')) {
+            if (confirm('Excluir esta categoria?')) {
                 appData.categories = appData.categories.filter(c => c.id !== id);
                 saveData();
                 renderCurrentView();
+                showToast('🗑️ Categoria removida');
             }
         };
         
         window.showAddSubModal = (catId) => {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             modal.innerHTML = `
-                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6">
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6" onclick="event.stopPropagation()">
                     <h3 class="text-xl font-bold mb-4">Nova Subcategoria</h3>
                     <input type="text" id="subName" placeholder="Nome" class="w-full mb-3">
                     <input type="text" id="subKeywords" placeholder="Palavras-chave (separadas por vírgula)" class="w-full mb-4">
@@ -704,8 +827,8 @@ Data,Descrição,Valor,Instituição
         };
         
         window.addSubcategory = (catId) => {
-            const name = document.getElementById('subName').value;
-            const keywords = document.getElementById('subKeywords').value.split(',').map(k => k.trim());
+            const name = document.getElementById('subName')?.value;
+            const keywords = document.getElementById('subKeywords')?.value.split(',').map(k => k.trim()).filter(k => k);
             if (name) {
                 const cat = appData.categories.find(c => c.id === catId);
                 if (cat) {
@@ -717,21 +840,12 @@ Data,Descrição,Valor,Instituição
                     saveData();
                     renderCurrentView();
                     document.querySelector('.modal-overlay')?.remove();
-                    showToast('Subcategoria adicionada!');
+                    showToast(`✅ Subcategoria "${name}" adicionada!`);
                 }
+            } else {
+                showToast('❌ Digite um nome para a subcategoria', true);
             }
         };
-        
-        // CSV Import
-        function triggerCSVImport() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.csv';
-            input.onchange = (e) => {
-                if (e.target.files[0]) parseCSVAndImport(e.target.files[0]);
-            };
-            input.click();
-        }
         
         // Navigation and main render
         function renderCurrentView() {
@@ -758,12 +872,17 @@ Data,Descrição,Valor,Instituição
             }
             
             // Update nav active styles
-            document.querySelectorAll('[data-nav]').forEach(btn => {
-                const span = btn.querySelector('span:last-child');
-                if (btn.dataset.nav === appData.currentView) {
-                    span.style.color = '#00e5a0';
-                } else if (span) {
-                    span.style.color = '#9ca3af';
+            const labels = {
+                home: 'navHomeLabel',
+                transactions: 'navTxLabel',
+                budget: 'navBudgetLabel',
+                installments: 'navInstallmentLabel'
+            };
+            
+            Object.keys(labels).forEach(view => {
+                const label = document.getElementById(labels[view]);
+                if (label) {
+                    label.style.color = appData.currentView === view ? '#00e5a0' : '#9ca3af';
                 }
             });
         }
@@ -780,133 +899,27 @@ Data,Descrição,Valor,Instituição
             });
         });
         
-        // Add floating import button
-        const fab = document.createElement('button');
+        // Add FAB button for CSV import
+        const fab = document.createElement('div');
+        fab.className = 'fab-btn';
         fab.innerHTML = '📤';
-        fab.className = 'fixed bottom-24 right-4 w-14 h-14 gradient-btn rounded-full shadow-2xl text-2xl z-40';
         fab.onclick = triggerCSVImport;
         document.body.appendChild(fab);
-        
-        // Update balance periodically
-        setInterval(() => {
-            const stats = calculateStats();
-            const balanceEl = document.getElementById('balanceAmount');
-            if (balanceEl) balanceEl.innerHTML = `R$ ${stats.balance.toFixed(2)}`;
-        }, 1000);
         
         // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered:', reg)).catch(err => console.log('SW error:', err));
         }
         
-        // Funções de ajuda para CSV
-function showCSVHelp() {
-    const modal = document.getElementById('csvHelpModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function closeCSVHelp() {
-    const modal = document.getElementById('csvHelpModal');
-    if (modal) modal.style.display = 'none';
-}
-
-function downloadCSVTemplate() {
-    const template = `Data,Descrição,Valor,Instituição
-15/01,Exemplo Receita,1000.00,Nubank
-20/01,Exemplo Despesa,-250.50,Itaú
-01/02,Exemplo Parcela 1/12,-89.90,BB`;
-    
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.setAttribute('download', 'template_financas.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-// Melhorar função de importação com validação
-function parseCSVAndImport(file) {
-    // Validação inicial
-    if (!file.name.endsWith('.csv')) {
-        showToast('❌ Por favor, selecione um arquivo CSV válido');
-        return;
-    }
-    
-    Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        beforeFirstChunk: (chunk) => {
-            // Verificar headers obrigatórios
-            const firstLine = chunk.split('\n')[0].toLowerCase();
-            const required = ['data', 'descrição', 'valor'];
-            const missing = required.filter(r => !firstLine.includes(r));
-            if (missing.length > 0) {
-                showToast(`⚠️ Colunas faltando: ${missing.join(', ')}. Use o template!`);
-                return false;
-            }
-            return true;
-        },
-        complete: (results) => {
-            if (results.errors.length > 0) {
-                showToast(`⚠️ ${results.errors.length} erros encontrados, mas continuando...`);
-            }
-            
-            let successCount = 0;
-            let errorCount = 0;
-            
-            results.data.forEach(row => {
-                // Validação por linha
-                const dateField = row.Data || row.data || row.Date || row['Data'];
-                const descField = row.Descrição || row.descricao || row.Descricao || row.Description;
-                const valueField = row.Valor || row.valor || row.Valor || row.Amount;
-                
-                if (!dateField || !descField || !valueField) {
-                    errorCount++;
-                    return;
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('csvHelpModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeCSVHelp();
                 }
-                successCount++;
-                
-                // ... resto da lógica de importação existente ...
-            });
-            
-            showToast(`✅ ${successCount} transações importadas${errorCount > 0 ? `, ${errorCount} ignoradas` : ''}`);
-        }
-    });
-}
-
-// Adicionar botão de ajuda ao modal de importação
-function triggerCSVImport() {
-    // Criar modal customizado com opção de ajuda
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 z-50 flex items-center justify-center modal-overlay';
-    modal.innerHTML = `
-        <div class="glass-card rounded-2xl p-6 w-11/12 max-w-sm">
-            <h3 class="text-lg font-bold mb-4">Importar CSV</h3>
-            <input type="file" id="csvFileInput" accept=".csv" class="w-full mb-4">
-            <div class="flex gap-3">
-                <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-2 rounded-xl bg-gray-700">Cancelar</button>
-                <button onclick="importSelectedFile()" class="flex-1 gradient-btn py-2 rounded-xl font-semibold">Importar</button>
-            </div>
-            <button onclick="showCSVHelp();this.closest('.modal-overlay').remove()" class="w-full mt-3 text-[#00e5a0] text-sm">
-                ❓ Ver formato correto do CSV
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    window.importSelectedFile = () => {
-        const input = document.getElementById('csvFileInput');
-        if (input.files && input.files[0]) {
-            parseCSVAndImport(input.files[0]);
-            modal.remove();
-        } else {
-            showToast('Selecione um arquivo CSV');
-        }
-    };
-}
+            }
+        });
     </script>
 </body>
 </html>
