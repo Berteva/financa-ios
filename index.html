@@ -22,6 +22,49 @@
             background: linear-gradient(135deg, #0a0c10 0%, #111318 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
+        <!-- Modal de Ajuda CSV -->
+<div id="csvHelpModal" class="fixed inset-0 z-50 hidden items-end modal-overlay" style="display: none;">
+    <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">📄 Formato do CSV</h3>
+            <button onclick="closeCSVHelp()" class="text-3xl">&times;</button>
+        </div>
+        
+        <div class="space-y-4 text-sm">
+            <div class="bg-gray-800/50 rounded-xl p-3">
+                <div class="font-semibold text-[#00e5a0] mb-2">Colunas Obrigatórias:</div>
+                <ul class="space-y-2">
+                    <li class="flex justify-between"><span>📅 <strong>Data</strong></span><span class="text-gray-300">DD/MM ou DD/MM/YYYY</span></li>
+                    <li class="flex justify-between"><span>📝 <strong>Descrição</strong></span><span class="text-gray-300">Texto livre</span></li>
+                    <li class="flex justify-between"><span>💰 <strong>Valor</strong></span><span class="text-gray-300">R$ 1.234,56 ou 1234.56</span></li>
+                    <li class="flex justify-between"><span>🏦 <strong>Instituição</strong></span><span class="text-gray-300">Banco (opcional)</span></li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-800/50 rounded-xl p-3">
+                <div class="font-semibold text-[#00e5a0] mb-2">🔍 Detecção de Parcelas:</div>
+                <code class="block bg-black/50 p-2 rounded text-xs">
+                    "3/12" → Parcela 3 de 12<br>
+                    "5 de 10" → Parcela 5 de 10
+                </code>
+            </div>
+            
+            <div class="bg-gray-800/50 rounded-xl p-3">
+                <div class="font-semibold text-[#00e5a0] mb-2">📊 Exemplo CSV:</div>
+                <pre class="bg-black/50 p-2 rounded text-xs overflow-x-auto">
+Data,Descrição,Valor,Instituição
+15/01,Supermercado,-350.50,Nubank
+20/01,Ifood,-89.90,Nubank
+25/01,Salário,5000.00,Itaú
+01/02,Notebook 3/12,-250.00,BB</pre>
+            </div>
+            
+            <button onclick="downloadCSVTemplate()" class="gradient-btn w-full py-2 rounded-xl text-sm font-semibold">
+                📥 Baixar Template CSV
+            </button>
+        </div>
+    </div>
+</div>
         
         /* Custom dark theme */
         .glass-card {
@@ -755,6 +798,115 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered:', reg)).catch(err => console.log('SW error:', err));
         }
+        
+        // Funções de ajuda para CSV
+function showCSVHelp() {
+    const modal = document.getElementById('csvHelpModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeCSVHelp() {
+    const modal = document.getElementById('csvHelpModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function downloadCSVTemplate() {
+    const template = `Data,Descrição,Valor,Instituição
+15/01,Exemplo Receita,1000.00,Nubank
+20/01,Exemplo Despesa,-250.50,Itaú
+01/02,Exemplo Parcela 1/12,-89.90,BB`;
+    
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', 'template_financas.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+// Melhorar função de importação com validação
+function parseCSVAndImport(file) {
+    // Validação inicial
+    if (!file.name.endsWith('.csv')) {
+        showToast('❌ Por favor, selecione um arquivo CSV válido');
+        return;
+    }
+    
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        beforeFirstChunk: (chunk) => {
+            // Verificar headers obrigatórios
+            const firstLine = chunk.split('\n')[0].toLowerCase();
+            const required = ['data', 'descrição', 'valor'];
+            const missing = required.filter(r => !firstLine.includes(r));
+            if (missing.length > 0) {
+                showToast(`⚠️ Colunas faltando: ${missing.join(', ')}. Use o template!`);
+                return false;
+            }
+            return true;
+        },
+        complete: (results) => {
+            if (results.errors.length > 0) {
+                showToast(`⚠️ ${results.errors.length} erros encontrados, mas continuando...`);
+            }
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            results.data.forEach(row => {
+                // Validação por linha
+                const dateField = row.Data || row.data || row.Date || row['Data'];
+                const descField = row.Descrição || row.descricao || row.Descricao || row.Description;
+                const valueField = row.Valor || row.valor || row.Valor || row.Amount;
+                
+                if (!dateField || !descField || !valueField) {
+                    errorCount++;
+                    return;
+                }
+                successCount++;
+                
+                // ... resto da lógica de importação existente ...
+            });
+            
+            showToast(`✅ ${successCount} transações importadas${errorCount > 0 ? `, ${errorCount} ignoradas` : ''}`);
+        }
+    });
+}
+
+// Adicionar botão de ajuda ao modal de importação
+function triggerCSVImport() {
+    // Criar modal customizado com opção de ajuda
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center modal-overlay';
+    modal.innerHTML = `
+        <div class="glass-card rounded-2xl p-6 w-11/12 max-w-sm">
+            <h3 class="text-lg font-bold mb-4">Importar CSV</h3>
+            <input type="file" id="csvFileInput" accept=".csv" class="w-full mb-4">
+            <div class="flex gap-3">
+                <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-2 rounded-xl bg-gray-700">Cancelar</button>
+                <button onclick="importSelectedFile()" class="flex-1 gradient-btn py-2 rounded-xl font-semibold">Importar</button>
+            </div>
+            <button onclick="showCSVHelp();this.closest('.modal-overlay').remove()" class="w-full mt-3 text-[#00e5a0] text-sm">
+                ❓ Ver formato correto do CSV
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    window.importSelectedFile = () => {
+        const input = document.getElementById('csvFileInput');
+        if (input.files && input.files[0]) {
+            parseCSVAndImport(input.files[0]);
+            modal.remove();
+        } else {
+            showToast('Selecione um arquivo CSV');
+        }
+    };
+}
     </script>
 </body>
 </html>
