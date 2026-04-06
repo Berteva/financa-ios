@@ -1,16 +1,7 @@
-const CACHE = 'financa-v1';
-const urlsToCache = ['/', 'index.html', 'manifest.json'];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
-});
+// sw.js - Service Worker para offline-first
+const CACHE_NAME = 'financa-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  'https://cdn.tailwindcss.com',
+  'https://cdnjs.cloudflare.com/ajax
