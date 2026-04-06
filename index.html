@@ -5,177 +5,369 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0a0c10">
-  <title>FinancaFamiliar iOS</title>
+  <title>FinancaFamiliar</title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-  <script src="https://cdn.skypack.dev/@11ty/isomorphic-fetch@3"></script>
-  <script src="https://cdn.skypack.dev/papaparse@5"></script>
-  <script src="https://cdn.skypack.dev/dayjs@1"></script>
-  <script src="https://cdn.skypack.dev/idb-keyval@6"></script>
-  <style>/* CSS original refinado + iOS tweaks */</style>
+  <style>
+    :root{--bg:#0a0c10;--s1:#111318;--s2:#181b22;--br:#1e2130;--ac:#00e5a0;--tx:#eef0f6;--mu:#6b7280;--R:16px;--NH:68px;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+    body{height:100vh;background:var(--bg);color:var(--tx);font-family:-apple-system, sans-serif;overflow:hidden;}
+    #app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);}
+    .hd{background:var(--s1);border-bottom:1px solid var(--br);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+    .lg{font-size:18px;font-weight:800;color:var(--ac);}
+    .bv{font-size:18px;font-weight:700;}
+    .con{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--NH);}
+    .pg{display:none;padding:16px;gap:14px;flex-direction:column;}
+    .pg.on{display:flex;}
+    .bn{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--s1);border-top:1px solid var(--br);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;height:var(--NH);}
+    .nb{flex:1;flex-direction:column;align-items:center;justify-content:center;color:var(--mu);font-size:10px;cursor:pointer;min-height:44px;background:none;border:none;}
+    .nb.active{color:var(--ac);}
+    .card{background:var(--s1);border:1px solid var(--br);border-radius:var(--R);padding:18px;}
+    .btn{padding:12px;border-radius:8px;border:none;font-weight:600;cursor:pointer;width:100%;min-height:44px;}
+    .ba{background:var(--ac);color:#000;}
+    #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--s2);padding:12px 24px;border-radius:25px;z-index:999;opacity:0;transition:opacity .3s;}
+    .mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:none;align-items:flex-end;justify-content:center;}
+    .mbg.on{display:flex;}
+    .mod{background:var(--s2);border-radius:24px 24px 0 0;padding:24px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s;width:100%;max-width:480px;}
+    .mbg.on .mod{transform:translateY(0);}
+  </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
-  <!-- Header, sidebar, content, bottom-nav como original + novas abas -->
-  <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 flex px-4 py-2 z-50" style="padding-bottom: env(safe-area-inset-bottom); height: env(--NH, 68px);">
-    <button class="flex-1 nb" data-page="dash">🏠<span class="text-xs">Início</span></button>
-    <button class="flex-1 nb" data-page="txs">📋<span class="text-xs">Transações</span></button>
-    <button class="flex-1 nb" data-page="budget">💰<span class="text-xs">Orçamento</span></button>
-    <button class="flex-1 nb" data-page="parcels">📅<span class="text-xs">Parcelas</span></button>
-    <button class="flex-1 nb bg-green-500" data-page="import">📥<span class="text-xs">Import</span></button>
+<body>
+<div id="app">
+  <!-- Header -->
+  <div class="hd">
+    <div class="lg">FinancaFamiliar</div>
+    <div class="bv" id="balance">R$ 0,00</div>
   </div>
 
-  <!-- Modais: lancamento, nova-cat, csv-import, etc. -->
+  <!-- Content -->
+  <div class="con">
+    <div class="pg on" id="pg-dash">
+      <div class="card">
+        <h3>Dashboard</h3>
+        <div id="score">Score: --</div>
+        <button class="btn ba" onclick="openImport()">📥 Importar CSV</button>
+      </div>
+      <div class="card">
+        <h3>Últimas Transações</h3>
+        <div id="recent-txs">Carregando...</div>
+      </div>
+    </div>
 
-  <script>
-    // ================================= STATE & DB =================================
-    const { get, set } = useIDBKeyval('financa_v1');
-    const state = {
-      txs: [], cats: [], config: { name: 'Minha Família', income: 0 },
-      page: 'dash', search: '', filter: 'all'
-    };
+    <div class="pg" id="pg-txs">
+      <div class="card">
+        <input id="search" placeholder="Buscar..." class="w-full p-3 bg-gray-800 border border-gray-600 rounded">
+        <div id="tx-list">Carregando...</div>
+      </div>
+    </div>
 
-    // DEFAULT CATS + suas instituições
-    const DEFAULT_CATS = [
-      {id:'xp', name:'XP', color:'#00e5a0', lim:0, kw:['xp','invest','corretora']},
-      {id:'itau', name:'Itaú', color:'#f5a623', lim:0, kw:['itau','itau cc']},
-      {id:'nubank', name:'Nubank', color:'#38bdf8', lim:0, kw:['nubank','nu conta']},
-      {id:'sicoob', name:'Sicoob', color:'#a78bfa', lim:0, kw:['sicoob','coop']},
-      {id:'santander', name:'Santander', color:'#fb923c', lim:0, kw:['santander','san']},
-      {id:'caixa', name:'Caixa', color:'#34d399', lim:0, kw:['caixa','cef']},
-      {id:'brb', name:'BRB', color:'#f472b6', lim:0, kw:['brb','df']},
-      {id:'bb', name:'Banco do Brasil', color:'#fbbf24', lim:0, kw:['bb','brasil']},
-      // Suas cats gastos...
-      {id:'alimentacao', name:'Alimentação', color:'#fb923c', lim:1500, subs:[], kw:[]},
-      // ... resto como original
-    ];
+    <div class="pg" id="pg-budget">
+      <div class="card">
+        <h3>Orçamento</h3>
+        <div id="budget-list">Carregando...</div>
+        <button class="btn ba" onclick="openNewCat()">+ Nova Categoria</button>
+      </div>
+    </div>
 
-    // Keywords bancos + gastos (expansível)
-    const BANK_KW = {
-      'xp': ['xp','investimentos','corretora'],
-      'itau': ['itau','itau cc','itau p','cc itau'],
-      'nubank': ['nubank','nu conta','nu pag','nu invest'],
-      'sicoob': ['sicoob','sicoob coo','coop'],
-      'santander': ['santander','san cc','santander br'],
-      'caixa': ['caixa','cef','caixa econ'],
-      'brb': ['brb','banco brb'],
-      'bb': ['bb','banco brasil','bb cc']
-    };
+    <div class="pg" id="pg-parcels">
+      <div class="card">
+        <h3 id="parcels-count">0 Parcelas Abertas</h3>
+        <div id="future-payments">Carregando...</div>
+      </div>
+    </div>
+  </div>
 
-    // Reactive proxy
-    const reactiveState = new Proxy(state, {
-      set(target, prop, value) {
-        target[prop] = value;
-        render();
-        return true;
-      }
+  <!-- Bottom Nav -->
+  <nav class="bn">
+    <button class="nb active" data-page="dash">🏠 Início</button>
+    <button class="nb" data-page="txs">📋 Txs</button>
+    <button class="nb" data-page="budget">💰 Budget</button>
+    <button class="nb" data-page="parcels">📅 Parcelas</button>
+  </nav>
+</div>
+
+<!-- Modals -->
+<div class="mbg" id="m-import">
+  <div class="mod">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3>Importar CSV</h3>
+      <button onclick="closeModal('m-import')" style="background:none;border:none;color:#6b7280;font-size:24px;">×</button>
+    </div>
+    <input type="file" id="csv-file" accept=".csv">
+    <button class="btn ba" onclick="processCSV()">Importar</button>
+  </div>
+</div>
+
+<div class="mbg" id="m-newcat">
+  <div class="mod">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3>Nova Categoria</h3>
+      <button onclick="closeModal('m-newcat')" style="background:none;border:none;color:#6b7280;font-size:24px;">×</button>
+    </div>
+    <input id="newcat-name" placeholder="Nome da categoria" class="w-full p-3 bg-gray-800 border border-gray-600 rounded mb-3">
+    <input id="newcat-lim" type="number" placeholder="Limite R$" class="w-full p-3 bg-gray-800 border border-gray-600 rounded mb-3">
+    <button class="btn ba" onclick="addCategory()">Criar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ================================= STATE =================================
+  let state = {
+    txs: [],
+    cats: [
+      {id:'xp',name:'XP',color:'#00e5a0',lim:0,subs:[]},
+      {id:'itau',name:'Itaú',color:'#f5a623',lim:0,subs:[]},
+      {id:'nubank',name:'Nubank',color:'#38bdf8',lim:0,subs:[]},
+      {id:'sicoob',name:'Sicoob',color:'#a78bfa',lim:0,subs:[]},
+      {id:'santander',name:'Santander',color:'#fb923c',lim:0,subs:[]},
+      {id:'caixa',name:'Caixa',color:'#34d399',lim:0,subs:[]},
+      {id:'brb',name:'BRB',color:'#f472b6',lim:0,subs:[]},
+      {id:'bb',name:'Banco do Brasil',color:'#fbbf24',lim:0,subs:[]},
+      {id:'alimentacao',name:'Alimentação',color:'#fb923c',lim:1500,subs:[],kw:['ifood','rappi','mercado']}
+    ],
+    page: 'dash'
+  };
+
+  // LocalStorage simples (iOS safe)
+  function saveState() {
+    localStorage.setItem('financa_state', JSON.stringify(state));
+  }
+
+  function loadState() {
+    const saved = localStorage.getItem('financa_state');
+    if (saved) {
+      const loaded = JSON.parse(saved);
+      state.txs = loaded.txs || [];
+      state.cats = loaded.cats || state.cats;
+    }
+    updateUI();
+  }
+
+  // ================================= UTILS =================================
+  function $(id) { return document.getElementById(id); }
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 2500);
+  }
+
+  function showPage(page) {
+    document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+    $(`pg-${page}`).classList.add('on');
+    state.page = page;
+    updateNav();
+    if (page === 'dash') renderDash();
+    if (page === 'txs') renderTxs();
+    if (page === 'budget') renderBudget();
+    if (page === 'parcels') renderParcels();
+  }
+
+  function updateNav() {
+    document.querySelectorAll('.nb').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.page === state.page);
     });
+  }
 
-    // ================================= UTILS =================================
-    function uid() { return 'tx'+Date.now()+Math.random().toString(36).slice(2); }
-    function F(v) { return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{min:2,max:2}); }
-    function autoCat(desc) {
-      const d = desc.toLowerCase();
-      // Bancos primeiro
-      for(let [cat, kws] of Object.entries(BANK_KW)) {
-        if(kws.some(kw=>d.includes(kw))) return cat;
-      }
-      // Cats gastos (expansível)
-      if(d.includes('ifood')||d.includes('rappi')) return 'alimentacao';
-      // ... mais rules
-      return 'outros';
+  function openModal(id) {
+    $(id).classList.add('on');
+  }
+
+  function closeModal(id) {
+    $(id).classList.remove('on');
+  }
+
+  function N(v) {
+    return parseFloat((v || 0).toString().replace(/[R$\s,]/g, '')) || 0;
+  }
+
+  function F(v) {
+    return 'R$ ' + N(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  }
+
+  // ================================= FEATURES =================================
+  function autoCat(desc) {
+    const d = desc.toLowerCase();
+    // Bancos
+    for (let cat of state.cats) {
+      if (cat.kw && cat.kw.some(kw => d.includes(kw))) return cat.id;
     }
+    return 'outros';
+  }
 
-    function parseParcels(desc) {
-      const m = desc.match(/(\d+(?:st|nd|rd|th)?)\s*\/?\s*(\d+)/i) || desc.match(/(\d+)\/(\d+)/);
-      return m ? {curr: +m[1], total: +m[2]} : null;
-    }
+  function parseParcels(desc) {
+    const match = desc.match(/(\d+)\s*\/?\s*(\d+)/i);
+    return match ? {curr: parseInt(match[1]), total: parseInt(match[2])} : null;
+  }
 
-    // ================================= DB OPS =================================
-    async function loadAll() {
-      reactiveState.txs = await get('txs', []) || [];
-      reactiveState.cats = await get('cats', DEFAULT_CATS) || DEFAULT_CATS;
-      reactiveState.config = await get('config', {name:'Família', income:8500}) || {};
-    }
+  async function addTx(txData) {
+    const tx = {
+      id: 'tx' + Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      desc: txData.desc || 'Novo lançamento',
+      amt: N(txData.amt),
+      type: txData.type || 'debit',
+      cat: txData.cat || autoCat(txData.desc),
+      inst: txData.inst || '',
+      parcels: parseParcels(txData.desc)
+    };
+    state.txs.unshift(tx);
+    saveState();
+    updateUI();
+  }
 
-    async function addTx(tx) {
-      tx.id = uid();
-      tx.date = dayjs(tx.date).format('YYYY-MM-DD');
-      tx.cat = tx.cat || autoCat(tx.desc);
-      tx.parcels = parseParcels(tx.desc);
-      reactiveState.txs.unshift(tx);
-      await set('txs', reactiveState.txs);
-    }
+  function addCategory() {
+    const name = $('newcat-name').value;
+    const lim = $('newcat-lim').value;
+    if (!name) return toast('Nome obrigatório');
+    
+    state.cats.push({
+      id: 'cat' + Date.now(),
+      name,
+      lim: N(lim),
+      color: '#60a5fa',
+      subs: [],
+      kw: []
+    });
+    saveState();
+    closeModal('m-newcat');
+    toast('Categoria adicionada!');
+    renderBudget();
+  }
 
-    async function addCat(name, lim=0, color='#60a5fa') {
-      const cat = {id: uid().slice(0,8), name, lim: N(lim), color, subs:[]};
-      reactiveState.cats.push(cat);
-      await set('cats', reactiveState.cats);
-    }
-
-    // ================================= IMPORT CSV =================================
-    G('csvImport').onchange = async (e) => {
-      const file = e.target.files[0];
-      Papa.parse(file, {
-        header: true,
-        complete: async (res) => {
-          let count = 0;
-          for(let row of res.data) {
-            if(!row.Data || !row.Descrição || !row.Valor) continue;
-            await addTx({
+  function processCSV() {
+    const file = $('csv-file').files[0];
+    if (!file) return toast('Selecione CSV');
+    
+    Papa.parse(file, {
+      header: true,
+      complete: (results) => {
+        let imported = 0;
+        results.data.forEach(row => {
+          if (row.Data && row.Descrição && row.Valor) {
+            addTx({
               desc: row.Descrição,
-              amt: Math.abs(parseFloat(row.Valor.replace(/[R$\s,]/g,''))),
-              type: row.Valor.includes('-') ? 'debit' : 'credit',
-              inst: row.Instituição || autoCat(row.Descrição),
+              amt: row.Valor,
+              inst: row.Instituição || '',
               date: row.Data
             });
-            count++;
+            imported++;
           }
-          toast(`${count} transações importadas!`);
-          goTo('dash');
-        }
-      });
-    };
+        });
+        toast(`${imported} transações importadas!`);
+        closeModal('m-import');
+        renderDash();
+      }
+    });
+  }
 
-    // ================================= PARCELAS MODULE =================================
-    function calcParcelas() {
-      const abertas = reactiveState.txs.filter(t => t.parcels && t.parcels.curr < t.parcels.total);
-      const totalAberto = abertas.reduce((s,t)=>s+t.amt,0);
-      const futuras = {};
-      abertas.forEach(t => {
-        const nextDate = dayjs(t.date).add(t.parcels.curr, 'month').format('MMM/YY');
-        futuras[nextDate] = (futuras[nextDate]||0) + t.amt;
-      });
-      return {abertas, totalAberto, futuras};
-    }
+  // ================================= RENDERS =================================
+  function renderDash() {
+    const debits = state.txs.filter(t => t.type === 'debit').reduce((s,t) => s + t.amt, 0);
+    const credits = state.txs.filter(t => t.type === 'credit').reduce((s,t) => s + t.amt, 0);
+    $('balance').textContent = F(credits - debits);
+    
+    const recent = state.txs.slice(0,5).map(t => 
+      `<div class="py-2 border-b border-gray-700 flex justify-between">
+        <span>${t.desc.slice(0,20)}...</span>
+        <span style="color:${t.type==='credit'?'#00e5a0':'#ff4d6d'}">${t.type==='credit'?'+' : '-'} ${F(t.amt)}</span>
+      </div>`
+    ).join('');
+    
+    $('recent-txs').innerHTML = recent || '<div class="text-gray-500 text-center py-8">Nenhuma transação</div>';
+    
+    // Score simples
+    const score = Math.min(100, 100 - (debits / (credits || 1) * 50));
+    $('score').innerHTML = `<div>Score: <span style="color:${score>70?'#00e5a0':'#f5a623'}">${Math.round(score)}</span></div>`;
+  }
 
-    function renderParcels() {
-      const {abertas, totalAberto, futuras} = calcParcelas();
-      G('pg-parcels').innerHTML = `
-        <div class="card">
-          <h3>📅 ${abertas.length} Parcelas Abertas</h3>
-          <div class="text-2xl font-bold text-red-400">${F(totalAberto)} pendente</div>
+  function renderTxs() {
+    const list = state.txs.map(t => 
+      `<div class="py-3 border-b border-gray-700 flex justify-between items-center">
+        <div>
+          <div class="font-medium">${t.desc}</div>
+          <div class="text-sm text-gray-500">${t.inst} • ${t.date}</div>
         </div>
-        <div class="card">
-          <h4>Próximos Pagamentos</h4>
-          ${Object.entries(futuras).map(([m,v])=>
-            `<div>${m}: ${F(v)}</div>`).join('')}
+        <div>
+          <div style="color:${t.type==='credit'?'#00e5a0':'#ff4d6d'};font-weight:600">${t.type==='credit'?'+' : '-'} ${F(t.amt)}</div>
+          ${t.parcels ? `<div class="text-xs text-gray-500">${t.parcels.curr}/${t.parcels.total}</div>` : ''}
+        </div>
+      </div>`
+    ).join('');
+    $('tx-list').innerHTML = list || '<div class="text-gray-500 text-center py-8">Nenhuma transação</div>';
+  }
+
+  function renderBudget() {
+    let html = '';
+    state.cats.forEach(cat => {
+      const spent = state.txs.filter(t => t.cat === cat.id && t.type === 'debit')
+        .reduce((s,t) => s + t.amt, 0);
+      const pct = cat.lim ? Math.min(100, spent / cat.lim * 100) : 0;
+      html += `
+        <div class="py-4 border-b border-gray-700">
+          <div class="flex justify-between mb-2">
+            <span>${cat.name}</span>
+            <span>${F(spent)} / ${F(cat.lim)}</span>
+          </div>
+          <div class="w-full bg-gray-700 h-2 rounded-full">
+            <div class="bg-green-500 h-2 rounded-full" style="width:${pct}%"></div>
+          </div>
+          <div class="text-sm mt-1">${Math.round(pct)}%</div>
         </div>
       `;
-    }
+    });
+    $('budget-list').innerHTML = html;
+  }
 
-    // ================================= RENDER & NAV =================================
-    async function goTo(page) {
-      reactiveState.page = page;
-      // Hide all, show pg-${page}
-      if(page==='parcels') renderParcels();
-      else if(page==='budget') renderBudgetWithDynamicCats();
-      // ... outros renders
-    }
+  function renderParcels() {
+    const abertas = state.txs.filter(t => t.parcels && t.parcels.curr < t.parcels.total);
+    const total = abertas.reduce((s,t) => s + t.amt, 0);
+    
+    $('parcels-count').textContent = `${abertas.length} Parcelas Abertas • ${F(total)}`;
+    
+    const future = {};
+    abertas.forEach(t => {
+      const nextMonth = new Date(t.date);
+      nextMonth.setMonth(nextMonth.getMonth() + t.parcels.curr);
+      const key = nextMonth.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'});
+      future[key] = (future[key] || 0) + t.amt;
+    });
+    
+    $('future-payments').innerHTML = Object.entries(future)
+      .map(([month, amt]) => `<div class="py-2 border-b border-gray-700">${month}: ${F(amt)}</div>`)
+      .join('') || '<div class="text-gray-500 py-8 text-center">Nenhuma parcela aberta</div>';
+  }
 
-    // ================================= INIT =================================
-    await loadAll();
-    goTo('dash');
-  </script>
+  function updateUI() {
+    if (state.page === 'dash') renderDash();
+    if (state.page === 'txs') renderTxs();
+    if (state.page === 'budget') renderBudget();
+    if (state.page === 'parcels') renderParcels();
+  }
+
+  // ================================= EVENTS =================================
+  document.addEventListener('click', (e) => {
+    if (e.target.matches('.nb')) {
+      showPage(e.target.dataset.page);
+    }
+    if (e.target.id === 'import-btn') {
+      openModal('m-import');
+    }
+  });
+
+  $('search').addEventListener('input', (e) => {
+    // Simple search
+    const term = e.target.value.toLowerCase();
+    const filtered = state.txs.filter(t => t.desc.toLowerCase().includes(term));
+    // Re-render txs with filtered
+  });
+
+  // ================================= INIT =================================
+  loadState();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </body>
 </html>
