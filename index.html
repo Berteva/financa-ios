@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0c10">
+  <title>FinancaFamiliar iOS</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script src="https://cdn.skypack.dev/@11ty/isomorphic-fetch@3"></script>
+  <script src="https://cdn.skypack.dev/papaparse@5"></script>
+  <script src="https://cdn.skypack.dev/dayjs@1"></script>
+  <script src="https://cdn.skypack.dev/idb-keyval@6"></script>
+  <style>/* CSS original refinado + iOS tweaks */</style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+  <!-- Header, sidebar, content, bottom-nav como original + novas abas -->
+  <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 flex px-4 py-2 z-50" style="padding-bottom: env(safe-area-inset-bottom); height: env(--NH, 68px);">
+    <button class="flex-1 nb" data-page="dash">🏠<span class="text-xs">Início</span></button>
+    <button class="flex-1 nb" data-page="txs">📋<span class="text-xs">Transações</span></button>
+    <button class="flex-1 nb" data-page="budget">💰<span class="text-xs">Orçamento</span></button>
+    <button class="flex-1 nb" data-page="parcels">📅<span class="text-xs">Parcelas</span></button>
+    <button class="flex-1 nb bg-green-500" data-page="import">📥<span class="text-xs">Import</span></button>
+  </div>
+
+  <!-- Modais: lancamento, nova-cat, csv-import, etc. -->
+
+  <script>
+    // ================================= STATE & DB =================================
+    const { get, set } = useIDBKeyval('financa_v1');
+    const state = {
+      txs: [], cats: [], config: { name: 'Minha Família', income: 0 },
+      page: 'dash', search: '', filter: 'all'
+    };
+
+    // DEFAULT CATS + suas instituições
+    const DEFAULT_CATS = [
+      {id:'xp', name:'XP', color:'#00e5a0', lim:0, kw:['xp','invest','corretora']},
+      {id:'itau', name:'Itaú', color:'#f5a623', lim:0, kw:['itau','itau cc']},
+      {id:'nubank', name:'Nubank', color:'#38bdf8', lim:0, kw:['nubank','nu conta']},
+      {id:'sicoob', name:'Sicoob', color:'#a78bfa', lim:0, kw:['sicoob','coop']},
+      {id:'santander', name:'Santander', color:'#fb923c', lim:0, kw:['santander','san']},
+      {id:'caixa', name:'Caixa', color:'#34d399', lim:0, kw:['caixa','cef']},
+      {id:'brb', name:'BRB', color:'#f472b6', lim:0, kw:['brb','df']},
+      {id:'bb', name:'Banco do Brasil', color:'#fbbf24', lim:0, kw:['bb','brasil']},
+      // Suas cats gastos...
+      {id:'alimentacao', name:'Alimentação', color:'#fb923c', lim:1500, subs:[], kw:[]},
+      // ... resto como original
+    ];
+
+    // Keywords bancos + gastos (expansível)
+    const BANK_KW = {
+      'xp': ['xp','investimentos','corretora'],
+      'itau': ['itau','itau cc','itau p','cc itau'],
+      'nubank': ['nubank','nu conta','nu pag','nu invest'],
+      'sicoob': ['sicoob','sicoob coo','coop'],
+      'santander': ['santander','san cc','santander br'],
+      'caixa': ['caixa','cef','caixa econ'],
+      'brb': ['brb','banco brb'],
+      'bb': ['bb','banco brasil','bb cc']
+    };
+
+    // Reactive proxy
+    const reactiveState = new Proxy(state, {
+      set(target, prop, value) {
+        target[prop] = value;
+        render();
+        return true;
+      }
+    });
+
+    // ================================= UTILS =================================
+    function uid() { return 'tx'+Date.now()+Math.random().toString(36).slice(2); }
+    function F(v) { return 'R$ '+Math.abs(v).toLocaleString('pt-BR',{min:2,max:2}); }
+    function autoCat(desc) {
+      const d = desc.toLowerCase();
+      // Bancos primeiro
+      for(let [cat, kws] of Object.entries(BANK_KW)) {
+        if(kws.some(kw=>d.includes(kw))) return cat;
+      }
+      // Cats gastos (expansível)
+      if(d.includes('ifood')||d.includes('rappi')) return 'alimentacao';
+      // ... mais rules
+      return 'outros';
+    }
+
+    function parseParcels(desc) {
+      const m = desc.match(/(\d+(?:st|nd|rd|th)?)\s*\/?\s*(\d+)/i) || desc.match(/(\d+)\/(\d+)/);
+      return m ? {curr: +m[1], total: +m[2]} : null;
+    }
+
+    // ================================= DB OPS =================================
+    async function loadAll() {
+      reactiveState.txs = await get('txs', []) || [];
+      reactiveState.cats = await get('cats', DEFAULT_CATS) || DEFAULT_CATS;
+      reactiveState.config = await get('config', {name:'Família', income:8500}) || {};
+    }
+
+    async function addTx(tx) {
+      tx.id = uid();
+      tx.date = dayjs(tx.date).format('YYYY-MM-DD');
+      tx.cat = tx.cat || autoCat(tx.desc);
+      tx.parcels = parseParcels(tx.desc);
+      reactiveState.txs.unshift(tx);
+      await set('txs', reactiveState.txs);
+    }
+
+    async function addCat(name, lim=0, color='#60a5fa') {
+      const cat = {id: uid().slice(0,8), name, lim: N(lim), color, subs:[]};
+      reactiveState.cats.push(cat);
+      await set('cats', reactiveState.cats);
+    }
+
+    // ================================= IMPORT CSV =================================
+    G('csvImport').onchange = async (e) => {
+      const file = e.target.files[0];
+      Papa.parse(file, {
+        header: true,
+        complete: async (res) => {
+          let count = 0;
+          for(let row of res.data) {
+            if(!row.Data || !row.Descrição || !row.Valor) continue;
+            await addTx({
+              desc: row.Descrição,
+              amt: Math.abs(parseFloat(row.Valor.replace(/[R$\s,]/g,''))),
+              type: row.Valor.includes('-') ? 'debit' : 'credit',
+              inst: row.Instituição || autoCat(row.Descrição),
+              date: row.Data
+            });
+            count++;
+          }
+          toast(`${count} transações importadas!`);
+          goTo('dash');
+        }
+      });
+    };
+
+    // ================================= PARCELAS MODULE =================================
+    function calcParcelas() {
+      const abertas = reactiveState.txs.filter(t => t.parcels && t.parcels.curr < t.parcels.total);
+      const totalAberto = abertas.reduce((s,t)=>s+t.amt,0);
+      const futuras = {};
+      abertas.forEach(t => {
+        const nextDate = dayjs(t.date).add(t.parcels.curr, 'month').format('MMM/YY');
+        futuras[nextDate] = (futuras[nextDate]||0) + t.amt;
+      });
+      return {abertas, totalAberto, futuras};
+    }
+
+    function renderParcels() {
+      const {abertas, totalAberto, futuras} = calcParcelas();
+      G('pg-parcels').innerHTML = `
+        <div class="card">
+          <h3>📅 ${abertas.length} Parcelas Abertas</h3>
+          <div class="text-2xl font-bold text-red-400">${F(totalAberto)} pendente</div>
+        </div>
+        <div class="card">
+          <h4>Próximos Pagamentos</h4>
+          ${Object.entries(futuras).map(([m,v])=>
+            `<div>${m}: ${F(v)}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    // ================================= RENDER & NAV =================================
+    async function goTo(page) {
+      reactiveState.page = page;
+      // Hide all, show pg-${page}
+      if(page==='parcels') renderParcels();
+      else if(page==='budget') renderBudgetWithDynamicCats();
+      // ... outros renders
+    }
+
+    // ================================= INIT =================================
+    await loadAll();
+    goTo('dash');
+  </script>
+</body>
+</html>
