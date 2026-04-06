@@ -1,4 +1,4 @@
-// sw.js
+// sw.js (mesmo conteúdo)
 const CACHE_NAME = 'financa-v1';
 const urlsToCache = [
   '/',
