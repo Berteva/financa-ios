@@ -24,7 +24,7 @@
             min-height: 100vh;
         }
         
-        /* Container principal com largura fixa e centralizado */
+        /* Container principal */
         .app-container {
             max-width: 28rem;
             margin: 0 auto;
@@ -80,7 +80,7 @@
             transform: scale(0.92);
         }
         
-        /* Main content com padding para header e footer fixos */
+        /* Main content */
         .main-content {
             flex: 1;
             padding-top: 80px;
@@ -109,8 +109,9 @@
             padding-top: max(12px, env(safe-area-inset-top));
         }
         
+        /* Modal overlay */
         .modal-overlay {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             z-index: 100;
         }
@@ -128,6 +129,7 @@
             }
         }
         
+        /* Transaction items */
         .tx-item {
             transition: all 0.15s ease;
         }
@@ -137,13 +139,18 @@
             transform: scale(0.99);
         }
         
+        /* Form inputs */
         input, select, textarea {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(55, 65, 81, 0.5);
             color: white;
             border-radius: 12px;
             padding: 12px 16px;
             font-size: 16px;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: rgba(156, 163, 175, 0.7);
         }
         
         input:focus, select:focus, textarea:focus {
@@ -152,6 +159,12 @@
             box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.2);
         }
         
+        input[type="color"] {
+            height: 48px;
+            cursor: pointer;
+        }
+        
+        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -167,25 +180,16 @@
             border-radius: 10px;
         }
         
-        .balance-positive {
-            color: #00e5a0;
-            text-shadow: 0 0 10px rgba(0, 229, 160, 0.3);
-        }
-        
-        .balance-negative {
-            color: #ef4444;
-        }
-        
-        /* FAB button */
+        /* FAB button - posicionado acima da bottom nav */
         .fab-btn {
             position: fixed;
-            bottom: 90px;
+            bottom: 85px;
             right: 20px;
             width: 56px;
             height: 56px;
             border-radius: 28px;
             background: linear-gradient(135deg, #14b8a6, #10b981, #00e5a0);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(0, 229, 160, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -202,8 +206,47 @@
         @media (max-width: 640px) {
             .fab-btn {
                 right: 16px;
-                bottom: 85px;
+                bottom: 80px;
             }
+        }
+        
+        /* Modal de importação - estilos específicos */
+        .import-modal {
+            background: rgba(17, 19, 24, 0.98);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        
+        .import-modal h3, .import-modal p, .import-modal label {
+            color: white;
+        }
+        
+        /* Ajustes para texto em modais */
+        .modal-content {
+            color: white;
+        }
+        
+        .modal-content * {
+            color: white;
+        }
+        
+        .modal-content button {
+            color: white;
+        }
+        
+        /* Toast message */
+        .toast-message {
+            animation: slideUp 0.3s ease;
+            z-index: 200;
+        }
+        
+        /* Balance colors */
+        .balance-positive {
+            color: #00e5a0;
+            text-shadow: 0 0 10px rgba(0, 229, 160, 0.3);
+        }
+        
+        .balance-negative {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -248,11 +291,11 @@
         </div>
     </div>
 
-    <!-- Modal de Ajuda CSV (escondido inicialmente) -->
+    <!-- Modal de Ajuda CSV -->
     <div id="csvHelpModal" class="fixed inset-0 z-50 hidden items-end modal-overlay">
-        <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
+        <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 max-h-[80vh] overflow-y-auto modal-content">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold">📄 Formato Correto do CSV</h3>
+                <h3 class="text-xl font-bold text-white">📄 Formato Correto do CSV</h3>
                 <button onclick="closeCSVHelp()" class="text-3xl text-gray-400 hover:text-white">&times;</button>
             </div>
             
@@ -261,19 +304,19 @@
                     <div class="font-semibold text-[#00e5a0] mb-2">📌 Colunas Obrigatórias:</div>
                     <ul class="space-y-2">
                         <li class="flex justify-between items-center">
-                            <span>📅 <strong>Data</strong></span>
+                            <span class="text-white">📅 <strong>Data</strong></span>
                             <span class="text-gray-300 text-xs">DD/MM ou DD/MM/YYYY</span>
                         </li>
                         <li class="flex justify-between items-center">
-                            <span>📝 <strong>Descrição</strong></span>
+                            <span class="text-white">📝 <strong>Descrição</strong></span>
                             <span class="text-gray-300 text-xs">Texto livre</span>
                         </li>
                         <li class="flex justify-between items-center">
-                            <span>💰 <strong>Valor</strong></span>
+                            <span class="text-white">💰 <strong>Valor</strong></span>
                             <span class="text-gray-300 text-xs">R$ 1.234,56 ou 1234.56</span>
                         </li>
                         <li class="flex justify-between items-center">
-                            <span>🏦 <strong>Instituição</strong></span>
+                            <span class="text-white">🏦 <strong>Instituição</strong></span>
                             <span class="text-gray-300 text-xs">Banco (opcional)</span>
                         </li>
                     </ul>
@@ -281,7 +324,7 @@
                 
                 <div class="bg-gray-800/50 rounded-xl p-3">
                     <div class="font-semibold text-[#00e5a0] mb-2">🔍 Detecção de Parcelas:</div>
-                    <code class="block bg-black/50 p-2 rounded text-xs">
+                    <code class="block bg-black/50 p-2 rounded text-xs text-gray-300">
                         "3/12" → Parcela 3 de 12<br>
                         "5 de 10" → Parcela 5 de 10
                     </code>
@@ -289,7 +332,7 @@
                 
                 <div class="bg-gray-800/50 rounded-xl p-3">
                     <div class="font-semibold text-[#00e5a0] mb-2">📊 Exemplo CSV:</div>
-                    <pre class="bg-black/50 p-2 rounded text-xs overflow-x-auto font-mono">
+                    <pre class="bg-black/50 p-2 rounded text-xs overflow-x-auto text-gray-300 font-mono">
 Data,Descrição,Valor,Instituição
 15/01,Supermercado,-350.50,Nubank
 20/01,Ifood - Almoço,-89.90,Nubank
@@ -299,7 +342,7 @@ Data,Descrição,Valor,Instituição
                 
                 <div class="bg-gray-800/50 rounded-xl p-3">
                     <div class="font-semibold text-[#00e5a0] mb-2">🏦 Bancos Detectados:</div>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-300">
                         <span>• XP Investimentos</span>
                         <span>• Itaú</span>
                         <span>• Nubank</span>
@@ -311,7 +354,7 @@ Data,Descrição,Valor,Instituição
                     </div>
                 </div>
                 
-                <button onclick="downloadCSVTemplate()" class="gradient-btn w-full py-3 rounded-xl text-sm font-semibold">
+                <button onclick="downloadCSVTemplate()" class="gradient-btn w-full py-3 rounded-xl text-sm font-semibold text-white">
                     📥 Baixar Template CSV
                 </button>
             </div>
@@ -361,8 +404,7 @@ Data,Descrição,Valor,Instituição
 
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
-            toast.className = `fixed bottom-24 left-4 right-4 max-w-md mx-auto ${isError ? 'bg-red-900' : 'bg-gray-900'} text-white px-4 py-3 rounded-xl text-center z-50 glass-card`;
-            toast.style.animation = 'slideUp 0.3s ease';
+            toast.className = `toast-message fixed bottom-24 left-4 right-4 max-w-md mx-auto ${isError ? 'bg-red-900' : 'bg-gray-900'} text-white px-4 py-3 rounded-xl text-center z-50 glass-card`;
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
@@ -516,12 +558,13 @@ Data,Descrição,Valor,Instituição
                 if (e.target === modal) modal.remove();
             };
             modal.innerHTML = `
-                <div class="glass-card rounded-2xl p-6 w-11/12 max-w-sm" onclick="event.stopPropagation()">
-                    <h3 class="text-lg font-bold mb-4">📤 Importar CSV</h3>
-                    <input type="file" id="csvFileInput" accept=".csv" class="w-full mb-4">
+                <div class="import-modal glass-card rounded-2xl p-6 w-11/12 max-w-sm modal-content" onclick="event.stopPropagation()">
+                    <h3 class="text-lg font-bold mb-4 text-white">📤 Importar CSV</h3>
+                    <label class="block mb-2 text-sm text-gray-300">Selecione o arquivo CSV:</label>
+                    <input type="file" id="csvFileInput" accept=".csv" class="w-full mb-4 text-white">
                     <div class="flex gap-3">
-                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-2 rounded-xl bg-gray-700">Cancelar</button>
-                        <button onclick="importSelectedFile()" class="flex-1 gradient-btn py-2 rounded-xl font-semibold">Importar</button>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-2 rounded-xl bg-gray-700 text-white">Cancelar</button>
+                        <button onclick="importSelectedFile()" class="flex-1 gradient-btn py-2 rounded-xl font-semibold text-white">Importar</button>
                     </div>
                     <button onclick="showCSVHelp();this.closest('.modal-overlay').remove()" class="w-full mt-3 text-[#00e5a0] text-sm">
                         ❓ Ver formato correto do CSV
@@ -608,7 +651,7 @@ Data,Descrição,Valor,Instituição
                             '<div class="text-center text-gray-500 py-8">Adicione transações para ver o gráfico</div>' :
                             Object.entries(stats.categorySpending).slice(0,5).map(([name, val]) => `
                                 <div class="flex justify-between py-2 border-b border-gray-700">
-                                    <span>${name}</span>
+                                    <span class="text-white">${name}</span>
                                     <span class="text-[#00e5a0]">R$ ${val.toFixed(2)}</span>
                                 </div>
                             `).join('')
@@ -621,7 +664,7 @@ Data,Descrição,Valor,Instituição
                             recentTxs.map(tx => `
                                 <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
                                     <div>
-                                        <div class="font-medium">${tx.description}</div>
+                                        <div class="font-medium text-white">${tx.description}</div>
                                         <div class="text-xs text-gray-400">${tx.date}</div>
                                     </div>
                                     <div class="${tx.amount > 0 ? 'text-green-400' : 'text-red-400'} font-semibold">
@@ -666,7 +709,7 @@ Data,Descrição,Valor,Instituição
                     <div class="tx-item glass-card rounded-xl p-3 mb-2">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <div class="font-medium">${tx.description}</div>
+                                <div class="font-medium text-white">${tx.description}</div>
                                 <div class="text-xs text-gray-400">${tx.date}</div>
                                 ${tx.installmentTotal ? `<div class="text-xs text-[#00e5a0]">Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>` : ''}
                             </div>
@@ -725,7 +768,7 @@ Data,Descrição,Valor,Instituição
                     <div class="glass-card rounded-2xl p-4">
                         <div class="text-3xl font-bold text-[#00e5a0]">${openInstallments.length}</div>
                         <div class="text-sm text-gray-400">Parcelas em aberto</div>
-                        <div class="text-lg font-semibold mt-2">Total pendente: R$ ${totalPending.toFixed(2)}</div>
+                        <div class="text-lg font-semibold text-white mt-2">Total pendente: R$ ${totalPending.toFixed(2)}</div>
                     </div>
                     
                     <div class="glass-card rounded-2xl p-4">
@@ -733,7 +776,7 @@ Data,Descrição,Valor,Instituição
                         ${Object.entries(projection).length === 0 ? '<div class="text-center text-gray-500 py-4">Nenhuma parcela futura</div>' :
                             Object.entries(projection).map(([month, value]) => `
                                 <div class="flex justify-between py-2 border-b border-gray-700">
-                                    <span>${month}</span>
+                                    <span class="text-white">${month}</span>
                                     <span class="text-[#00e5a0]">R$ ${value.toFixed(2)}</span>
                                 </div>
                             `).join('')
@@ -746,7 +789,7 @@ Data,Descrição,Valor,Instituição
                             openInstallments.map(tx => `
                                 <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
                                     <div>
-                                        <div class="font-medium">${tx.description}</div>
+                                        <div class="font-medium text-white">${tx.description}</div>
                                         <div class="text-xs text-gray-400">${tx.date} - Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>
                                     </div>
                                     <div class="text-red-400 font-semibold">R$ ${Math.abs(tx.amount).toFixed(2)}</div>
@@ -764,14 +807,15 @@ Data,Descrição,Valor,Instituição
             modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             modal.innerHTML = `
-                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6" onclick="event.stopPropagation()">
-                    <h3 class="text-xl font-bold mb-4">Nova Categoria</h3>
-                    <input type="text" id="catName" placeholder="Nome" class="w-full mb-3">
-                    <input type="number" id="catLimit" placeholder="Limite mensal" class="w-full mb-3">
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 modal-content" onclick="event.stopPropagation()">
+                    <h3 class="text-xl font-bold mb-4 text-white">Nova Categoria</h3>
+                    <input type="text" id="catName" placeholder="Nome" class="w-full mb-3 text-white">
+                    <input type="number" id="catLimit" placeholder="Limite mensal" class="w-full mb-3 text-white">
+                    <label class="text-sm text-gray-300 mb-1 block">Cor:</label>
                     <input type="color" id="catColor" value="#00e5a0" class="w-full mb-4">
                     <div class="flex gap-3">
-                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700">Cancelar</button>
-                        <button onclick="addCategory()" class="flex-1 gradient-btn py-3 rounded-xl font-semibold">Salvar</button>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700 text-white">Cancelar</button>
+                        <button onclick="addCategory()" class="flex-1 gradient-btn py-3 rounded-xl font-semibold text-white">Salvar</button>
                     </div>
                 </div>
             `;
@@ -813,13 +857,13 @@ Data,Descrição,Valor,Instituição
             modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
             modal.innerHTML = `
-                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6" onclick="event.stopPropagation()">
-                    <h3 class="text-xl font-bold mb-4">Nova Subcategoria</h3>
-                    <input type="text" id="subName" placeholder="Nome" class="w-full mb-3">
-                    <input type="text" id="subKeywords" placeholder="Palavras-chave (separadas por vírgula)" class="w-full mb-4">
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 modal-content" onclick="event.stopPropagation()">
+                    <h3 class="text-xl font-bold mb-4 text-white">Nova Subcategoria</h3>
+                    <input type="text" id="subName" placeholder="Nome" class="w-full mb-3 text-white">
+                    <input type="text" id="subKeywords" placeholder="Palavras-chave (separadas por vírgula)" class="w-full mb-4 text-white">
                     <div class="flex gap-3">
-                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700">Cancelar</button>
-                        <button onclick="addSubcategory('${catId}')" class="flex-1 gradient-btn py-3 rounded-xl font-semibold">Salvar</button>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700 text-white">Cancelar</button>
+                        <button onclick="addSubcategory('${catId}')" class="flex-1 gradient-btn py-3 rounded-xl font-semibold text-white">Salvar</button>
                     </div>
                 </div>
             `;
