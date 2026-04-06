@@ -1,373 +1,760 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>FinancaFamiliar</title>
-  <link rel="manifest" href="manifest.json">
-  <style>
-    :root{--bg:#0a0c10;--s1:#111318;--s2:#181b22;--br:#1e2130;--ac:#00e5a0;--tx:#eef0f6;--mu:#6b7280;--R:16px;--NH:68px;}
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
-    body{height:100vh;background:var(--bg);color:var(--tx);font-family:-apple-system, sans-serif;overflow:hidden;}
-    #app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);}
-    .hd{background:var(--s1);border-bottom:1px solid var(--br);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
-    .lg{font-size:18px;font-weight:800;color:var(--ac);}
-    .bv{font-size:18px;font-weight:700;}
-    .con{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--NH);}
-    .pg{display:none;padding:16px;gap:14px;flex-direction:column;}
-    .pg.on{display:flex;}
-    .bn{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--s1);border-top:1px solid var(--br);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;height:var(--NH);}
-    .nb{flex:1;flex-direction:column;align-items:center;justify-content:center;color:var(--mu);font-size:10px;cursor:pointer;min-height:44px;background:none;border:none;}
-    .nb.active{color:var(--ac);}
-    .card{background:var(--s1);border:1px solid var(--br);border-radius:var(--R);padding:18px;}
-    .btn{padding:12px;border-radius:8px;border:none;font-weight:600;cursor:pointer;width:100%;min-height:44px;}
-    .ba{background:var(--ac);color:#000;}
-    #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--s2);padding:12px 24px;border-radius:25px;z-index:999;opacity:0;transition:opacity .3s;}
-    .mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:none;align-items:flex-end;justify-content:center;}
-    .mbg.on{display:flex;}
-    .mod{background:var(--s2);border-radius:24px 24px 0 0;padding:24px;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s;width:100%;max-width:480px;}
-    .mbg.on .mod{transform:translateY(0);}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinançaFamiliar">
+    <meta name="theme-color" content="#0a0c10">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2300e5a0'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='%230a0c10' font-weight='bold'%3E💰%3C/text%3E%3C/svg%3E">
+    <title>FinancaFamiliar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0c10 0%, #111318 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Custom dark theme */
+        .glass-card {
+            background: rgba(17, 19, 24, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .gradient-btn {
+            background: linear-gradient(135deg, #14b8a6, #10b981, #00e5a0);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .gradient-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 0 20px rgba(0, 229, 160, 0.5);
+        }
+        
+        .bottom-nav-btn {
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+        
+        .bottom-nav-btn:active {
+            transform: scale(0.92);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+        }
+        
+        .bottom-sheet {
+            animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .tx-item {
+            transition: all 0.15s ease;
+        }
+        
+        .tx-item:active {
+            background: rgba(0, 229, 160, 0.1);
+            transform: scale(0.99);
+        }
+        
+        .category-badge {
+            transition: all 0.15s ease;
+        }
+        
+        .category-badge:active {
+            transform: scale(0.95);
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00e5a0;
+            box-shadow: 0 0 0 2px rgba(0, 229, 160, 0.2);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00e5a0;
+            border-radius: 10px;
+        }
+        
+        .donut-chart {
+            transform: rotate(-90deg);
+        }
+        
+        .balance-positive {
+            color: #00e5a0;
+            text-shadow: 0 0 10px rgba(0, 229, 160, 0.3);
+        }
+        
+        .balance-negative {
+            color: #ef4444;
+        }
+        
+        @supports (padding: max(0px)) {
+            .safe-bottom {
+                padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+            }
+            .safe-top {
+                padding-top: max(env(safe-area-inset-top, 0px), 12px);
+            }
+        }
+    </style>
 </head>
-<body>
-<div id="app">
-  <!-- Header -->
-  <div class="hd">
-    <div class="lg">FinancaFamiliar</div>
-    <div class="bv" id="balance">R$ 0,00</div>
-  </div>
+<body class="text-white">
+    <div id="app" class="max-w-md mx-auto relative min-h-screen">
+        <!-- Header Fixo -->
+        <header class="fixed top-0 left-0 right-0 z-40 glass-card safe-top" style="max-width: 28rem; margin: 0 auto;">
+            <div class="px-5 py-3">
+                <div class="text-xs text-gray-400 mb-1">Saldo Total</div>
+                <div class="text-3xl font-bold" id="balanceAmount">R$ 0,00</div>
+            </div>
+        </header>
 
-  <!-- Content -->
-  <div class="con">
-    <div class="pg on" id="pg-dash">
-      <div class="card">
-        <h3>Dashboard</h3>
-        <div id="score">Score: --</div>
-        <button class="btn ba" onclick="openImport()">📥 Importar CSV</button>
-      </div>
-      <div class="card">
-        <h3>Últimas Transações</h3>
-        <div id="recent-txs">Carregando...</div>
-      </div>
+        <!-- Main Content -->
+        <main id="mainContent" class="pt-24 pb-20 px-4">
+            <!-- Conteúdo dinâmico via JS -->
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 z-40 glass-card safe-bottom" style="max-width: 28rem; margin: 0 auto;">
+            <div class="flex justify-around items-center px-2 py-2">
+                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="home">
+                    <span class="text-2xl">🏠</span>
+                    <span class="text-xs" style="color: #00e5a0;">Início</span>
+                </button>
+                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="transactions">
+                    <span class="text-2xl">📋</span>
+                    <span class="text-xs text-gray-400">Txs</span>
+                </button>
+                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all" data-nav="budget">
+                    <span class="text-2xl">💰</span>
+                    <span class="text-xs text-gray-400">Budget</span>
+                </button>
+                <button class="bottom-nav-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all relative" data-nav="installments">
+                    <span class="text-2xl">📅</span>
+                    <span class="text-xs text-gray-400">Parcelas</span>
+                    <span id="installmentBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 hidden">0</span>
+                </button>
+            </div>
+        </nav>
     </div>
 
-    <div class="pg" id="pg-txs">
-      <div class="card">
-        <input id="search" placeholder="Buscar..." class="w-full p-3 bg-gray-800 border border-gray-600 rounded">
-        <div id="tx-list">Carregando...</div>
-      </div>
-    </div>
+    <script>
+        // ==================== DATA STRUCTURES ====================
+        let appData = {
+            transactions: [],
+            categories: [
+                { id: 'cat1', name: 'Alimentação', limit: 1000, color: '#00e5a0', subs: [{ id: 'sub1', name: 'Delivery', keywords: ['ifood', 'rappi', 'uber eats'] }] },
+                { id: 'cat2', name: 'Transporte', limit: 500, color: '#3b82f6', subs: [{ id: 'sub2', name: 'Uber', keywords: ['uber', '99'] }] },
+                { id: 'cat3', name: 'Moradia', limit: 2000, color: '#f59e0b', subs: [] },
+                { id: 'cat4', name: 'Lazer', limit: 800, color: '#ec489a', subs: [] }
+            ],
+            nextCategoryId: 5,
+            currentView: 'home'
+        };
 
-    <div class="pg" id="pg-budget">
-      <div class="card">
-        <h3>Orçamento</h3>
-        <div id="budget-list">Carregando...</div>
-        <button class="btn ba" onclick="openNewCat()">+ Nova Categoria</button>
-      </div>
-    </div>
+        // Banco de keywords para auto-categorização
+        const bankKeywords = {
+            xp: ['xp', 'invest', 'corretora'],
+            itau: ['itau', 'cc itau'],
+            nubank: ['nubank', 'nu conta'],
+            sicoob: ['sicoob'],
+            santander: ['santander', 'san'],
+            caixa: ['caixa', 'cef'],
+            brb: ['brb'],
+            bb: ['bb', 'banco brasil']
+        };
 
-    <div class="pg" id="pg-parcels">
-      <div class="card">
-        <h3 id="parcels-count">0 Parcelas Abertas</h3>
-        <div id="future-payments">Carregando...</div>
-      </div>
-    </div>
-  </div>
+        // Helper functions
+        function saveData() {
+            localStorage.setItem('financaData', JSON.stringify(appData));
+        }
 
-  <!-- Bottom Nav -->
-  <nav class="bn">
-    <button class="nb active" data-page="dash">🏠 Início</button>
-    <button class="nb" data-page="txs">📋 Txs</button>
-    <button class="nb" data-page="budget">💰 Budget</button>
-    <button class="nb" data-page="parcels">📅 Parcelas</button>
-  </nav>
-</div>
+        function loadData() {
+            const saved = localStorage.getItem('financaData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                appData = { ...appData, ...parsed };
+                renderCurrentView();
+                updateInstallmentBadge();
+            }
+        }
 
-<!-- Modals -->
-<div class="mbg" id="m-import">
-  <div class="mod">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h3>Importar CSV</h3>
-      <button onclick="closeModal('m-import')" style="background:none;border:none;color:#6b7280;font-size:24px;">×</button>
-    </div>
-    <input type="file" id="csv-file" accept=".csv">
-    <button class="btn ba" onclick="processCSV()">Importar</button>
-  </div>
-</div>
+        function parseCSVAndImport(file) {
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    const newTransactions = [];
+                    results.data.forEach(row => {
+                        // Auto-detect columns
+                        const dateField = row.Data || row.data || row.Date || row['Data'];
+                        const descField = row.Descrição || row.descricao || row.Descricao || row.Description || '';
+                        const valueField = row.Valor || row.valor || row.Valor || row.Amount || '';
+                        const bankField = row.Instituição || row.instituicao || row.Bank || '';
 
-<div class="mbg" id="m-newcat">
-  <div class="mod">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h3>Nova Categoria</h3>
-      <button onclick="closeModal('m-newcat')" style="background:none;border:none;color:#6b7280;font-size:24px;">×</button>
-    </div>
-    <input id="newcat-name" placeholder="Nome da categoria" class="w-full p-3 bg-gray-800 border border-gray-600 rounded mb-3">
-    <input id="newcat-lim" type="number" placeholder="Limite R$" class="w-full p-3 bg-gray-800 border border-gray-600 rounded mb-3">
-    <button class="btn ba" onclick="addCategory()">Criar</button>
-  </div>
-</div>
+                        if (dateField && descField && valueField) {
+                            // Parse valor R$ 1.234,56 -> 1234.56
+                            let valorNum = 0;
+                            if (typeof valueField === 'string') {
+                                const cleaned = valueField.replace(/R\$|\./g, '').replace(',', '.');
+                                valorNum = parseFloat(cleaned) || 0;
+                            } else {
+                                valorNum = parseFloat(valueField) || 0;
+                            }
 
-<div id="toast"></div>
+                            // Parse data dd/mm ou dd/mm/yyyy
+                            let dateStr = dateField.toString();
+                            let year = new Date().getFullYear();
+                            let day, month;
+                            if (dateStr.includes('/')) {
+                                const parts = dateStr.split('/');
+                                day = parts[0];
+                                month = parts[1];
+                                if (parts[2]) year = parts[2];
+                            } else {
+                                day = dateStr.substring(0, 2);
+                                month = dateStr.substring(2, 4);
+                            }
+                            const formattedDate = `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
 
-<script>
-  // ================================= STATE =================================
-  let state = {
-    txs: [],
-    cats: [
-      {id:'xp',name:'XP',color:'#00e5a0',lim:0,subs:[]},
-      {id:'itau',name:'Itaú',color:'#f5a623',lim:0,subs:[]},
-      {id:'nubank',name:'Nubank',color:'#38bdf8',lim:0,subs:[]},
-      {id:'sicoob',name:'Sicoob',color:'#a78bfa',lim:0,subs:[]},
-      {id:'santander',name:'Santander',color:'#fb923c',lim:0,subs:[]},
-      {id:'caixa',name:'Caixa',color:'#34d399',lim:0,subs:[]},
-      {id:'brb',name:'BRB',color:'#f472b6',lim:0,subs:[]},
-      {id:'bb',name:'Banco do Brasil',color:'#fbbf24',lim:0,subs:[]},
-      {id:'alimentacao',name:'Alimentação',color:'#fb923c',lim:1500,subs:[],kw:['ifood','rappi','mercado']}
-    ],
-    page: 'dash'
-  };
+                            // Detect parcelas
+                            let installmentCurrent = null;
+                            let installmentTotal = null;
+                            const installmentRegex = /(\d+)\/(\d+)/;
+                            const installmentRegex2 = /(\d+)\s+de\s+(\d+)/i;
+                            let match = descField.match(installmentRegex);
+                            if (!match) match = descField.match(installmentRegex2);
+                            if (match) {
+                                installmentCurrent = parseInt(match[1]);
+                                installmentTotal = parseInt(match[2]);
+                            }
 
-  // LocalStorage simples (iOS safe)
-  function saveState() {
-    localStorage.setItem('financa_state', JSON.stringify(state));
-  }
+                            // Auto-categorização por banco e keywords
+                            let categoryId = null;
+                            let subCategoryId = null;
+                            
+                            // Primeiro tenta por banco
+                            const bankLower = bankField.toLowerCase();
+                            for (let [bank, keywords] of Object.entries(bankKeywords)) {
+                                if (keywords.some(kw => bankLower.includes(kw))) {
+                                    // Banco identificado, procurar categoria relacionada
+                                    const expenseCat = appData.categories.find(c => c.name.toLowerCase().includes('banco') || c.name.toLowerCase().includes(bank));
+                                    if (expenseCat) categoryId = expenseCat.id;
+                                    break;
+                                }
+                            }
 
-  function loadState() {
-    const saved = localStorage.getItem('financa_state');
-    if (saved) {
-      const loaded = JSON.parse(saved);
-      state.txs = loaded.txs || [];
-      state.cats = loaded.cats || state.cats;
-    }
-    updateUI();
-  }
+                            // Depois por palavras-chave nas subs
+                            if (!categoryId) {
+                                const descLower = descField.toLowerCase();
+                                for (let cat of appData.categories) {
+                                    for (let sub of cat.subs) {
+                                        if (sub.keywords.some(kw => descLower.includes(kw.toLowerCase()))) {
+                                            categoryId = cat.id;
+                                            subCategoryId = sub.id;
+                                            break;
+                                        }
+                                    }
+                                    if (categoryId) break;
+                                }
+                            }
 
-  // ================================= UTILS =================================
-  function $(id) { return document.getElementById(id); }
-  function toast(msg) {
-    const t = $('toast');
-    t.textContent = msg;
-    t.style.opacity = '1';
-    setTimeout(() => t.style.opacity = '0', 2500);
-  }
+                            newTransactions.push({
+                                id: Date.now() + Math.random(),
+                                date: formattedDate,
+                                description: descField,
+                                amount: valorNum,
+                                type: valorNum >= 0 ? 'income' : 'expense',
+                                categoryId: categoryId,
+                                subCategoryId: subCategoryId,
+                                bank: bankField,
+                                installmentCurrent: installmentCurrent,
+                                installmentTotal: installmentTotal
+                            });
+                        }
+                    });
 
-  function showPage(page) {
-    document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
-    $(`pg-${page}`).classList.add('on');
-    state.page = page;
-    updateNav();
-    if (page === 'dash') renderDash();
-    if (page === 'txs') renderTxs();
-    if (page === 'budget') renderBudget();
-    if (page === 'parcels') renderParcels();
-  }
-
-  function updateNav() {
-    document.querySelectorAll('.nb').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.page === state.page);
-    });
-  }
-
-  function openModal(id) {
-    $(id).classList.add('on');
-  }
-
-  function closeModal(id) {
-    $(id).classList.remove('on');
-  }
-
-  function N(v) {
-    return parseFloat((v || 0).toString().replace(/[R$\s,]/g, '')) || 0;
-  }
-
-  function F(v) {
-    return 'R$ ' + N(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  }
-
-  // ================================= FEATURES =================================
-  function autoCat(desc) {
-    const d = desc.toLowerCase();
-    // Bancos
-    for (let cat of state.cats) {
-      if (cat.kw && cat.kw.some(kw => d.includes(kw))) return cat.id;
-    }
-    return 'outros';
-  }
-
-  function parseParcels(desc) {
-    const match = desc.match(/(\d+)\s*\/?\s*(\d+)/i);
-    return match ? {curr: parseInt(match[1]), total: parseInt(match[2])} : null;
-  }
-
-  async function addTx(txData) {
-    const tx = {
-      id: 'tx' + Date.now(),
-      date: new Date().toISOString().split('T')[0],
-      desc: txData.desc || 'Novo lançamento',
-      amt: N(txData.amt),
-      type: txData.type || 'debit',
-      cat: txData.cat || autoCat(txData.desc),
-      inst: txData.inst || '',
-      parcels: parseParcels(txData.desc)
-    };
-    state.txs.unshift(tx);
-    saveState();
-    updateUI();
-  }
-
-  function addCategory() {
-    const name = $('newcat-name').value;
-    const lim = $('newcat-lim').value;
-    if (!name) return toast('Nome obrigatório');
-    
-    state.cats.push({
-      id: 'cat' + Date.now(),
-      name,
-      lim: N(lim),
-      color: '#60a5fa',
-      subs: [],
-      kw: []
-    });
-    saveState();
-    closeModal('m-newcat');
-    toast('Categoria adicionada!');
-    renderBudget();
-  }
-
-  function processCSV() {
-    const file = $('csv-file').files[0];
-    if (!file) return toast('Selecione CSV');
-    
-    Papa.parse(file, {
-      header: true,
-      complete: (results) => {
-        let imported = 0;
-        results.data.forEach(row => {
-          if (row.Data && row.Descrição && row.Valor) {
-            addTx({
-              desc: row.Descrição,
-              amt: row.Valor,
-              inst: row.Instituição || '',
-              date: row.Data
+                    appData.transactions = [...appData.transactions, ...newTransactions];
+                    saveData();
+                    renderCurrentView();
+                    updateInstallmentBadge();
+                    showToast(`${newTransactions.length} transações importadas com sucesso!`);
+                },
+                error: (error) => {
+                    console.error('Erro no CSV:', error);
+                    showToast('Erro ao processar CSV');
+                }
             });
-            imported++;
-          }
+        }
+
+        function autoCategorizeTransaction(tx) {
+            // Similar à lógica acima mas para transações individuais
+            const descLower = tx.description.toLowerCase();
+            for (let cat of appData.categories) {
+                for (let sub of cat.subs) {
+                    if (sub.keywords.some(kw => descLower.includes(kw.toLowerCase()))) {
+                        return { categoryId: cat.id, subCategoryId: sub.id };
+                    }
+                }
+            }
+            return { categoryId: null, subCategoryId: null };
+        }
+
+        function updateInstallmentBadge() {
+            const openInstallments = appData.transactions.filter(tx => tx.installmentTotal && tx.installmentCurrent < tx.installmentTotal);
+            const badge = document.getElementById('installmentBadge');
+            if (badge) {
+                if (openInstallments.length > 0) {
+                    badge.textContent = openInstallments.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-xl text-center z-50 glass-card animate-slide-up';
+            toast.style.animation = 'slideUp 0.3s ease';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Calculate dashboard stats
+        function calculateStats() {
+            const totalIncome = appData.transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+            const totalExpense = appData.transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const balance = totalIncome - totalExpense;
+            
+            // Score financeiro
+            let score = 50;
+            if (balance > 0) score += 20;
+            if (totalExpense < totalIncome * 0.5) score += 20;
+            if (totalExpense < totalIncome * 0.3) score += 10;
+            score = Math.min(100, Math.max(0, score));
+            
+            // Categorias agrupadas
+            const categorySpending = {};
+            appData.transactions.filter(t => t.amount < 0).forEach(t => {
+                const cat = appData.categories.find(c => c.id === t.categoryId);
+                const catName = cat ? cat.name : 'Sem categoria';
+                categorySpending[catName] = (categorySpending[catName] || 0) + Math.abs(t.amount);
+            });
+            
+            return { totalIncome, totalExpense, balance, score, categorySpending };
+        }
+
+        // Render functions for each view
+        function renderHome() {
+            const stats = calculateStats();
+            const recentTxs = [...appData.transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,5);
+            
+            const donutData = Object.entries(stats.categorySpending).slice(0,5);
+            const total = donutData.reduce((sum, [,val]) => sum + val, 0);
+            
+            let donutSVG = '';
+            if (donutData.length > 0) {
+                let currentAngle = 0;
+                donutSVG = `<svg viewBox="0 0 100 100" class="w-32 h-32 donut-chart">`;
+                donutData.forEach(([name, value]) => {
+                    const percentage = (value / total) * 100;
+                    const angle = (percentage / 100) * 360;
+                    const startAngle = currentAngle;
+                    const endAngle = currentAngle + angle;
+                    const x1 = 50 + 40 * Math.cos((startAngle - 90) * Math.PI / 180);
+                    const y1 = 50 + 40 * Math.sin((startAngle - 90) * Math.PI / 180);
+                    const x2 = 50 + 40 * Math.cos((endAngle - 90) * Math.PI / 180);
+                    const y2 = 50 + 40 * Math.sin((endAngle - 90) * Math.PI / 180);
+                    const largeArc = angle > 180 ? 1 : 0;
+                    donutSVG += `<path d="M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z" fill="url(#grad${donutData.indexOf(name)})" />`;
+                    currentAngle += angle;
+                });
+                donutSVG += `</svg>`;
+            }
+
+            return `
+                <div class="space-y-4">
+                    <!-- Score Card -->
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-sm text-gray-400 mb-2">Score Financeiro</div>
+                        <div class="text-3xl font-bold text-[#00e5a0]">${stats.score}</div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                            <div class="bg-[#00e5a0] h-2 rounded-full" style="width: ${stats.score}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Income/Expense Cards -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="glass-card rounded-2xl p-4">
+                            <div class="text-sm text-gray-400">Receitas</div>
+                            <div class="text-xl font-bold text-green-400">R$ ${stats.totalIncome.toFixed(2)}</div>
+                        </div>
+                        <div class="glass-card rounded-2xl p-4">
+                            <div class="text-sm text-gray-400">Despesas</div>
+                            <div class="text-xl font-bold text-red-400">R$ ${stats.totalExpense.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Donut Chart -->
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-sm text-gray-400 mb-3">Gastos por Categoria</div>
+                        <div class="flex justify-center mb-3">
+                            ${donutSVG || '<div class="text-gray-500 text-center py-8">Adicione transações para ver o gráfico</div>'}
+                        </div>
+                        <div class="space-y-1 text-xs">
+                            ${donutData.map(([name, val], idx) => `
+                                <div class="flex justify-between">
+                                    <span>${name}</span>
+                                    <span class="text-[#00e5a0]">R$ ${val.toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Transactions -->
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-sm text-gray-400 mb-3">Últimas Transações</div>
+                        ${recentTxs.length === 0 ? '<div class="text-center text-gray-500 py-4">Nenhuma transação</div>' : 
+                            recentTxs.map(tx => `
+                                <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
+                                    <div>
+                                        <div class="font-medium">${tx.description}</div>
+                                        <div class="text-xs text-gray-400">${tx.date}</div>
+                                    </div>
+                                    <div class="${tx.amount > 0 ? 'text-green-400' : 'text-red-400'} font-semibold">
+                                        R$ ${Math.abs(tx.amount).toFixed(2)}
+                                    </div>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTransactions() {
+            const searchHtml = `
+                <input type="text" id="searchTx" placeholder="🔍 Buscar transações..." class="w-full mb-4 glass-card">
+                <div id="transactionsList"></div>
+            `;
+            
+            setTimeout(() => {
+                const searchInput = document.getElementById('searchTx');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        const filtered = appData.transactions.filter(t => 
+                            t.description.toLowerCase().includes(e.target.value.toLowerCase())
+                        );
+                        renderTxList(filtered);
+                    });
+                }
+                renderTxList(appData.transactions);
+            }, 0);
+            
+            return searchHtml;
+        }
+        
+        function renderTxList(transactions) {
+            const container = document.getElementById('transactionsList');
+            if (!container) return;
+            
+            const sorted = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+            container.innerHTML = sorted.length === 0 ? 
+                '<div class="text-center text-gray-500 py-8">Nenhuma transação encontrada</div>' :
+                sorted.map(tx => `
+                    <div class="tx-item glass-card rounded-xl p-3 mb-2">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="font-medium">${tx.description}</div>
+                                <div class="text-xs text-gray-400">${tx.date}</div>
+                                ${tx.installmentTotal ? `<div class="text-xs text-[#00e5a0]">Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>` : ''}
+                            </div>
+                            <div class="${tx.amount > 0 ? 'text-green-400' : 'text-red-400'} font-semibold">
+                                R$ ${Math.abs(tx.amount).toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function renderBudget() {
+            return `
+                <div class="space-y-4">
+                    <button onclick="showAddCategoryModal()" class="gradient-btn w-full py-3 rounded-xl font-semibold text-white">
+                        + Nova Categoria
+                    </button>
+                    <div id="categoriesList">
+                        ${appData.categories.map(cat => `
+                            <div class="glass-card rounded-xl p-4 mb-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div>
+                                        <div class="font-semibold" style="color: ${cat.color}">${cat.name}</div>
+                                        <div class="text-xs text-gray-400">Limite: R$ ${cat.limit}</div>
+                                    </div>
+                                    <button onclick="deleteCategory('${cat.id}')" class="text-red-400 text-sm">Excluir</button>
+                                </div>
+                                <div class="text-xs text-gray-400">Subcategorias: ${cat.subs.length}</div>
+                                <button onclick="showAddSubModal('${cat.id}')" class="text-[#00e5a0] text-xs mt-2">+ Adicionar Subcategoria</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInstallments() {
+            const openInstallments = appData.transactions.filter(tx => tx.installmentTotal && tx.installmentCurrent < tx.installmentTotal);
+            const totalPending = openInstallments.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+            
+            // Projeção 6 meses
+            const projection = {};
+            openInstallments.forEach(tx => {
+                const remaining = tx.installmentTotal - tx.installmentCurrent;
+                const monthlyAmount = Math.abs(tx.amount);
+                const date = new Date(tx.date);
+                for (let i = 1; i <= Math.min(remaining, 6); i++) {
+                    const futureDate = new Date(date);
+                    futureDate.setMonth(date.getMonth() + i);
+                    const monthKey = `${futureDate.getFullYear()}-${futureDate.getMonth()}`;
+                    projection[monthKey] = (projection[monthKey] || 0) + monthlyAmount;
+                }
+            });
+            
+            return `
+                <div class="space-y-4">
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-2xl font-bold text-[#00e5a0]">${openInstallments.length}</div>
+                        <div class="text-sm text-gray-400">Parcelas em aberto</div>
+                        <div class="text-lg font-semibold mt-2">Total pendente: R$ ${totalPending.toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-sm text-gray-400 mb-3">Projeção próximos 6 meses</div>
+                        ${Object.entries(projection).length === 0 ? '<div class="text-center text-gray-500">Nenhuma parcela futura</div>' :
+                            Object.entries(projection).map(([month, value]) => `
+                                <div class="flex justify-between py-2 border-b border-gray-700">
+                                    <span>${month}</span>
+                                    <span class="text-[#00e5a0]">R$ ${value.toFixed(2)}</span>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-4">
+                        <div class="text-sm text-gray-400 mb-3">Lista de parcelas abertas</div>
+                        ${openInstallments.map(tx => `
+                            <div class="tx-item flex justify-between items-center py-2 border-b border-gray-700">
+                                <div>
+                                    <div class="font-medium">${tx.description}</div>
+                                    <div class="text-xs text-gray-400">${tx.date} - Parcela ${tx.installmentCurrent}/${tx.installmentTotal}</div>
+                                </div>
+                                <div class="text-red-400">R$ ${Math.abs(tx.amount).toFixed(2)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Modal handlers
+        window.showAddCategoryModal = () => {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
+            modal.innerHTML = `
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6 animate-slide-up">
+                    <h3 class="text-xl font-bold mb-4">Nova Categoria</h3>
+                    <input type="text" id="catName" placeholder="Nome" class="w-full mb-3">
+                    <input type="number" id="catLimit" placeholder="Limite mensal" class="w-full mb-3">
+                    <input type="color" id="catColor" value="#00e5a0" class="w-full mb-4">
+                    <div class="flex gap-3">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700">Cancelar</button>
+                        <button onclick="addCategory()" class="flex-1 gradient-btn py-3 rounded-xl font-semibold">Salvar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+        
+        window.addCategory = () => {
+            const name = document.getElementById('catName').value;
+            const limit = parseFloat(document.getElementById('catLimit').value);
+            const color = document.getElementById('catColor').value;
+            if (name) {
+                appData.categories.push({
+                    id: `cat${appData.nextCategoryId++}`,
+                    name: name,
+                    limit: limit || 0,
+                    color: color,
+                    subs: []
+                });
+                saveData();
+                renderCurrentView();
+                document.querySelector('.modal-overlay')?.remove();
+                showToast('Categoria adicionada!');
+            }
+        };
+        
+        window.deleteCategory = (id) => {
+            if (confirm('Excluir categoria?')) {
+                appData.categories = appData.categories.filter(c => c.id !== id);
+                saveData();
+                renderCurrentView();
+            }
+        };
+        
+        window.showAddSubModal = (catId) => {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-end modal-overlay';
+            modal.innerHTML = `
+                <div class="bottom-sheet glass-card rounded-t-3xl w-full p-6">
+                    <h3 class="text-xl font-bold mb-4">Nova Subcategoria</h3>
+                    <input type="text" id="subName" placeholder="Nome" class="w-full mb-3">
+                    <input type="text" id="subKeywords" placeholder="Palavras-chave (separadas por vírgula)" class="w-full mb-4">
+                    <div class="flex gap-3">
+                        <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl bg-gray-700">Cancelar</button>
+                        <button onclick="addSubcategory('${catId}')" class="flex-1 gradient-btn py-3 rounded-xl font-semibold">Salvar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+        
+        window.addSubcategory = (catId) => {
+            const name = document.getElementById('subName').value;
+            const keywords = document.getElementById('subKeywords').value.split(',').map(k => k.trim());
+            if (name) {
+                const cat = appData.categories.find(c => c.id === catId);
+                if (cat) {
+                    cat.subs.push({
+                        id: `sub${Date.now()}`,
+                        name: name,
+                        keywords: keywords
+                    });
+                    saveData();
+                    renderCurrentView();
+                    document.querySelector('.modal-overlay')?.remove();
+                    showToast('Subcategoria adicionada!');
+                }
+            }
+        };
+        
+        // CSV Import
+        function triggerCSVImport() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = (e) => {
+                if (e.target.files[0]) parseCSVAndImport(e.target.files[0]);
+            };
+            input.click();
+        }
+        
+        // Navigation and main render
+        function renderCurrentView() {
+            const main = document.getElementById('mainContent');
+            const balanceEl = document.getElementById('balanceAmount');
+            const stats = calculateStats();
+            if (balanceEl) balanceEl.innerHTML = `R$ ${stats.balance.toFixed(2)}`;
+            
+            switch(appData.currentView) {
+                case 'home':
+                    main.innerHTML = renderHome();
+                    break;
+                case 'transactions':
+                    main.innerHTML = renderTransactions();
+                    break;
+                case 'budget':
+                    main.innerHTML = renderBudget();
+                    break;
+                case 'installments':
+                    main.innerHTML = renderInstallments();
+                    break;
+                default:
+                    main.innerHTML = renderHome();
+            }
+            
+            // Update nav active styles
+            document.querySelectorAll('[data-nav]').forEach(btn => {
+                const span = btn.querySelector('span:last-child');
+                if (btn.dataset.nav === appData.currentView) {
+                    span.style.color = '#00e5a0';
+                } else if (span) {
+                    span.style.color = '#9ca3af';
+                }
+            });
+        }
+        
+        // Initialize app
+        loadData();
+        renderCurrentView();
+        
+        // Setup navigation
+        document.querySelectorAll('[data-nav]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                appData.currentView = btn.dataset.nav;
+                renderCurrentView();
+            });
         });
-        toast(`${imported} transações importadas!`);
-        closeModal('m-import');
-        renderDash();
-      }
-    });
-  }
-
-  // ================================= RENDERS =================================
-  function renderDash() {
-    const debits = state.txs.filter(t => t.type === 'debit').reduce((s,t) => s + t.amt, 0);
-    const credits = state.txs.filter(t => t.type === 'credit').reduce((s,t) => s + t.amt, 0);
-    $('balance').textContent = F(credits - debits);
-    
-    const recent = state.txs.slice(0,5).map(t => 
-      `<div class="py-2 border-b border-gray-700 flex justify-between">
-        <span>${t.desc.slice(0,20)}...</span>
-        <span style="color:${t.type==='credit'?'#00e5a0':'#ff4d6d'}">${t.type==='credit'?'+' : '-'} ${F(t.amt)}</span>
-      </div>`
-    ).join('');
-    
-    $('recent-txs').innerHTML = recent || '<div class="text-gray-500 text-center py-8">Nenhuma transação</div>';
-    
-    // Score simples
-    const score = Math.min(100, 100 - (debits / (credits || 1) * 50));
-    $('score').innerHTML = `<div>Score: <span style="color:${score>70?'#00e5a0':'#f5a623'}">${Math.round(score)}</span></div>`;
-  }
-
-  function renderTxs() {
-    const list = state.txs.map(t => 
-      `<div class="py-3 border-b border-gray-700 flex justify-between items-center">
-        <div>
-          <div class="font-medium">${t.desc}</div>
-          <div class="text-sm text-gray-500">${t.inst} • ${t.date}</div>
-        </div>
-        <div>
-          <div style="color:${t.type==='credit'?'#00e5a0':'#ff4d6d'};font-weight:600">${t.type==='credit'?'+' : '-'} ${F(t.amt)}</div>
-          ${t.parcels ? `<div class="text-xs text-gray-500">${t.parcels.curr}/${t.parcels.total}</div>` : ''}
-        </div>
-      </div>`
-    ).join('');
-    $('tx-list').innerHTML = list || '<div class="text-gray-500 text-center py-8">Nenhuma transação</div>';
-  }
-
-  function renderBudget() {
-    let html = '';
-    state.cats.forEach(cat => {
-      const spent = state.txs.filter(t => t.cat === cat.id && t.type === 'debit')
-        .reduce((s,t) => s + t.amt, 0);
-      const pct = cat.lim ? Math.min(100, spent / cat.lim * 100) : 0;
-      html += `
-        <div class="py-4 border-b border-gray-700">
-          <div class="flex justify-between mb-2">
-            <span>${cat.name}</span>
-            <span>${F(spent)} / ${F(cat.lim)}</span>
-          </div>
-          <div class="w-full bg-gray-700 h-2 rounded-full">
-            <div class="bg-green-500 h-2 rounded-full" style="width:${pct}%"></div>
-          </div>
-          <div class="text-sm mt-1">${Math.round(pct)}%</div>
-        </div>
-      `;
-    });
-    $('budget-list').innerHTML = html;
-  }
-
-  function renderParcels() {
-    const abertas = state.txs.filter(t => t.parcels && t.parcels.curr < t.parcels.total);
-    const total = abertas.reduce((s,t) => s + t.amt, 0);
-    
-    $('parcels-count').textContent = `${abertas.length} Parcelas Abertas • ${F(total)}`;
-    
-    const future = {};
-    abertas.forEach(t => {
-      const nextMonth = new Date(t.date);
-      nextMonth.setMonth(nextMonth.getMonth() + t.parcels.curr);
-      const key = nextMonth.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'});
-      future[key] = (future[key] || 0) + t.amt;
-    });
-    
-    $('future-payments').innerHTML = Object.entries(future)
-      .map(([month, amt]) => `<div class="py-2 border-b border-gray-700">${month}: ${F(amt)}</div>`)
-      .join('') || '<div class="text-gray-500 py-8 text-center">Nenhuma parcela aberta</div>';
-  }
-
-  function updateUI() {
-    if (state.page === 'dash') renderDash();
-    if (state.page === 'txs') renderTxs();
-    if (state.page === 'budget') renderBudget();
-    if (state.page === 'parcels') renderParcels();
-  }
-
-  // ================================= EVENTS =================================
-  document.addEventListener('click', (e) => {
-    if (e.target.matches('.nb')) {
-      showPage(e.target.dataset.page);
-    }
-    if (e.target.id === 'import-btn') {
-      openModal('m-import');
-    }
-  });
-
-  $('search').addEventListener('input', (e) => {
-    // Simple search
-    const term = e.target.value.toLowerCase();
-    const filtered = state.txs.filter(t => t.desc.toLowerCase().includes(term));
-    // Re-render txs with filtered
-  });
-
-  // ================================= INIT =================================
-  loadState();
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
+        
+        // Add floating import button
+        const fab = document.createElement('button');
+        fab.innerHTML = '📤';
+        fab.className = 'fixed bottom-24 right-4 w-14 h-14 gradient-btn rounded-full shadow-2xl text-2xl z-40';
+        fab.onclick = triggerCSVImport;
+        document.body.appendChild(fab);
+        
+        // Update balance periodically
+        setInterval(() => {
+            const stats = calculateStats();
+            const balanceEl = document.getElementById('balanceAmount');
+            if (balanceEl) balanceEl.innerHTML = `R$ ${stats.balance.toFixed(2)}`;
+        }, 1000);
+        
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered:', reg)).catch(err => console.log('SW error:', err));
+        }
+    </script>
 </body>
 </html>
